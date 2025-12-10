@@ -1,4 +1,4 @@
-#include "Game.hpp"
+#include "WolfGame.hpp"
 #include <iostream>
 #include <fstream>
 Game::Game(){
