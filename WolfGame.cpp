@@ -174,7 +174,6 @@ void Game::render()
         SDL_Rect floorRect = {0, ScreenHeightWidth.second / 2, ScreenHeightWidth.first, ScreenHeightWidth.second / 2};
         SDL_RenderFillRect(renderer, &floorRect);
     }
-
     // Raycasting for walls
     int raysCount = ScreenHeightWidth.first;
     float fovRad = FOV * (3.14159f / 180.0f);
@@ -448,7 +447,7 @@ void Game::printPlayerPosition(){
     std::cout << "Player Position: (" << playerPosition.first << ", " << playerPosition.second << ")\n";
 }
 bool Game::isDoor(int tile) {
-    return tile >= 6 && tile <= 9;
+    return tile >= 6 && tile <=9;
 }
 bool Game::playerHasKey(int keyType) {
     if(keyType == 0) return true; // no key needed
@@ -458,6 +457,65 @@ bool Game::playerHasKey(int keyType) {
         }
     }
     return false;
+}
+static std::string toLower(const std::string &s) {
+    std::string r = s;
+    std::transform(r.begin(), r.end(), r.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    return r;
+}
+void Game::loadAllTextures(const char* filePath)
+{
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open texture list file: " << filePath << "\n";
+        return;
+    }
+
+    enum Section { NONE, WALLS, FLOORS, CEILS };
+    Section currentSection = NONE;
+
+    std::string line;
+    while (std::getline(file, line)) {
+
+        // Trim leading/trailing spaces
+        auto trim = [](std::string &s) {
+            while (!s.empty() && std::isspace((unsigned char)s.front())) s.erase(s.begin());
+            while (!s.empty() && std::isspace((unsigned char)s.back())) s.pop_back();
+        };
+        trim(line);
+        if (line.empty()) continue;       // Skip blank lines
+
+        std::string low = toLower(line);
+
+        // Detect section headers case-insensitively
+        if (low == "[walls]") {
+            currentSection = WALLS;
+            continue;
+        }
+        if (low == "[floors]") {
+            currentSection = FLOORS;
+            continue;
+        }
+        if (low == "[ceils]" || low == "[ceil]" || low == "[ceilings]") {
+            currentSection = CEILS;
+            continue;
+        }
+
+        // If it’s not a section header, it must be a file path
+        if (currentSection == WALLS) {
+            addWallTexture(line.c_str());
+        }
+        else if (currentSection == FLOORS) {
+            addFloorTexture(line.c_str());
+        }
+        else if (currentSection == CEILS) {
+            addCeilingTexture(line.c_str());
+        }
+        else {
+            std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
+        }
+    }
 }
 void Game::clean()
 {

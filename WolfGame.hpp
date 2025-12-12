@@ -25,6 +25,7 @@ public:
     void addCeilingTexture(const char* filePath);
     bool isDoor(int tileValue);
     bool playerHasKey(int keyType);
+    void loadAllTextures(const char* filePath);
 private:
     bool isRunning;
     SDL_Window *window;
