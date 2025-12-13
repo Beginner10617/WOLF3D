@@ -1,6 +1,8 @@
 #include "WolfGame.hpp"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+
 Game::Game(){
 
 }
@@ -95,27 +97,19 @@ void Game::handleEvents()
         playerAngle += rotationSensitivity;
 
     // Door interaction (Space to open/close)
+    // Door interaction (Space to open/close)
     if (keystate[SDL_SCANCODE_SPACE])
     {
-        int px = (int)(playerPosition.first + playerSquareSize);
-        int py = (int)(playerPosition.second);
-
-        // tile directly ahead of player
-        int tx = px + (int)round(cos(playerAngle));
-        int ty = py + (int)round(sin(playerAngle));
+        int tx = (int)(playerPosition.first  + cos(playerAngle) * playerSquareSize *1.1f);
+        int ty = (int)(playerPosition.second + sin(playerAngle) * playerSquareSize *1.1f);
 
         auto key = std::make_pair(ty, tx);
         if (doors.count(key)) {
             Door &d = doors[key];
 
-            // locked?
-            if (d.locked) {
-                if (!playerHasKey(d.keyType)) {
-                    return;
-                }
-            }
+            if (d.locked && !playerHasKey(d.keyType))
+                return;
 
-            // toggle
             if (d.openAmount == 0.0f)
                 d.opening = true;
         }
@@ -166,7 +160,7 @@ void Game::update(float deltaTime)
 
 void Game::render()
 {
-    SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255);
+    SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
     SDL_RenderClear(renderer);   
     // Draw floor
     if (floorTextures.size() == 0) {
@@ -302,28 +296,38 @@ void Game::render()
         int texId = Map[mapY][mapX] - 1;
         int imgWidth = wallTextureWidths[texId], imgHeight = wallTextureHeights[texId];
         SDL_QueryTexture(wallTextures[texId], NULL, NULL, &imgWidth, &imgHeight);
-          
+
+        // -------- distance-based shading --------
+        float maxLightDist = 8.0f;
+        float shade = 1.0f - std::min(correctedDistance / maxLightDist, 1.0f);
+        Uint8 brightness = (Uint8)(40 + shade * 215);
+        SDL_SetTextureColorMod(wallTextures[texId],
+                            brightness, brightness, brightness);
+        // --------------------------------------
+
         if(!isDoor(texId+1)){
             int texX = (int)(wallX * imgWidth);
             if(hitSide == 0 && rayDirX > 0) texX = imgWidth - texX - 1;
             if(hitSide == 1 && rayDirY < 0) texX = imgWidth - texX - 1;
-            if(texX < 0) texX = 0;
-            if(texX >= imgWidth) texX = imgWidth - 1; 
-            SDL_Rect srcRect = { texX, 0, 1, imgHeight };
+            texX = std::clamp(texX, 0, imgWidth - 1);
+
+            SDL_Rect srcRect  = { texX, 0, 1, imgHeight };
             SDL_Rect destRect = { ray, drawStart, 1, drawEnd - drawStart };
             SDL_RenderCopy(renderer, wallTextures[texId], &srcRect, &destRect);
         }
-        else if(wallX>doors[{mapY, mapX}].openAmount){
+        else if (wallX > doors[{mapY, mapX}].openAmount) {
+
             wallX -= doors[{mapY, mapX}].openAmount;
             int texX = (int)(wallX * imgWidth);
             if(hitSide == 0 && rayDirX > 0) texX = imgWidth - texX - 1;
             if(hitSide == 1 && rayDirY < 0) texX = imgWidth - texX - 1;
-            if(texX < 0) texX = 0;
-            if(texX >= imgWidth) texX = imgWidth - 1; 
-            SDL_Rect srcRect = { texX, 0, 1, imgHeight };
+            texX = std::clamp(texX, 0, imgWidth - 1);
+
+            SDL_Rect srcRect  = { texX, 0, 1, imgHeight };
             SDL_Rect destRect = { ray, drawStart, 1, drawEnd - drawStart };
             SDL_RenderCopy(renderer, wallTextures[texId], &srcRect, &destRect);
         }
+
         // Draw floor texture
         if (floorTextures.size() > 0) {
             int floorScreenStart = drawEnd; // start drawing floor below the wall
@@ -363,10 +367,7 @@ void Game::render()
                 SDL_Rect srcRect  = { texX, texY, 1, 1 };
                 SDL_Rect destRect = { ray, y, 1, 1 };
                 SDL_RenderCopy(renderer, ceilingTextures[0], &srcRect, &destRect);
-            } else {
-                SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255); // Sky color
-                SDL_RenderDrawPoint(renderer, ray, y);
-            }
+            } 
         }
     }
 
@@ -393,7 +394,7 @@ void Game::loadMapDataFromFile(const char* filename)
                 if (t == 7) { d.locked = true;  d.keyType = 1; }  // blue key
                 if (t == 8) { d.locked = true;  d.keyType = 2; }  // red key
                 if (t == 9) { d.locked = true;  d.keyType = 3; }  // gold key
-
+                
                 doors[{Map.size(), row.size()}] = d;
             }
             if (ch >= '0' && ch <= '9') {

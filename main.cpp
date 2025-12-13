@@ -5,8 +5,8 @@ Game* game = nullptr;
 int main(int argc, char* argv[]) {
     game = new Game();
     game->init("My Game", 100, 100, 800, 600, false);
-    game->placePlayerAt(5, 5, 0.0f);
-    game->loadMapDataFromFile("testMap.txt");
+    game->placePlayerAt(2, 2, 0.0f);
+    game->loadMapDataFromFile("map.txt");
     game->loadAllTextures("textureMapping.txt");
     const int FPS = 60;
     const float frameDelay = 1000.0f / FPS;

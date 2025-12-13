@@ -6,4 +6,3 @@ Textures/4.png
 Textures/5.png
 Textures/6.png
 Textures/7.png
-Textures/8.png
