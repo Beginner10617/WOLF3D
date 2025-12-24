@@ -2,6 +2,7 @@
 #define Game_hpp
 #include "SDL.h"
 #include "SDL_image.h"
+#include "enemy.hpp"
 #include <stdio.h>
 #include <vector>
 #include <utility>
@@ -26,6 +27,8 @@ public:
     bool isDoor(int tileValue);
     bool playerHasKey(int keyType);
     void loadAllTextures(const char* filePath);
+    void addEnemy(float x, float y, float angle);
+    void loadEnemyTextures(const char* filePath);
 private:
     bool isRunning;
     SDL_Window *window;
@@ -49,6 +52,8 @@ private:
 
     std::map<std::pair<int,int>, Door> doors;  // key: (mapX,mapY)
     std::vector<Door> keysHeld; // keys the player has collected
+    std::vector<Enemy> enemies;
+    std::map<std::pair<int, int>, std::string> enemyTextures;
 };
 
 #endif

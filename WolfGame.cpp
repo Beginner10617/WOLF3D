@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-
 Game::Game(){
 
 }
@@ -162,6 +161,8 @@ void Game::render()
 {
     SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
     SDL_RenderClear(renderer);   
+    std::vector<float> zBuffer(ScreenHeightWidth.first);
+
     // Draw floor
     if (floorTextures.size() == 0) {
         SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
@@ -283,6 +284,7 @@ void Game::render()
             wallX = hitX - floor(hitX);
         float deltaAngle = rayAngle - playerAngle;
         float correctedDistance = distanceToWall * cos(deltaAngle);
+        zBuffer[ray] = correctedDistance;
 
         // Calculate wall height
         int lineHeight = (int)(ScreenHeightWidth.second / correctedDistance);
@@ -370,6 +372,88 @@ void Game::render()
             } 
         }
     }
+    // ================= ENEMY RENDERING (SPRITES) =================
+    // Enemies are rendered as billboard sprites (NOT raycasted)
+    // SORT the enemies list before here (TBD)
+    for (Enemy& enemy : enemies)
+    {
+        // ---- 1. Enemy position relative to player ----
+        auto [ex, ey] = enemy.get_position();
+
+        float dx = ex - playerPosition.first;
+        float dy = ey - playerPosition.second;
+
+        float enemyDist = sqrt(dx*dx + dy*dy);
+
+        // ---- 2. Angle between player view and enemy ----
+        float enemyAngle = atan2(dy, dx) - playerAngle;
+
+        // Normalize angle to [-PI, PI]
+        while (enemyAngle > PI)  enemyAngle -= 2 * PI;
+        while (enemyAngle < -PI) enemyAngle += 2 * PI;
+
+        // ---- 3. Check if enemy is inside FOV ----
+        if (fabs(enemyAngle) > halfFov)
+            continue; 
+        
+        // ---- 4. Project enemy into screen space ----
+        int screenX = (int)(
+            (enemyAngle + halfFov) / fovRad * ScreenHeightWidth.first
+        );
+
+        // ---- 5. Perspective scaling ----
+        int spriteHeight = (int)(ScreenHeightWidth.second / enemyDist);
+        int spriteWidth  = spriteHeight;
+
+        int drawStartY = -spriteHeight / 2 + ScreenHeightWidth.second / 2;
+        int drawEndY   =  spriteHeight / 2 + ScreenHeightWidth.second / 2;
+
+        if (drawStartY < 0) drawStartY = 0;
+        if (drawEndY >= ScreenHeightWidth.second)
+            drawEndY = ScreenHeightWidth.second - 1;
+
+        int drawStartX = -spriteWidth / 2 + screenX;
+        int drawEndX   =  spriteWidth / 2 + screenX;
+
+        // ---- 6. Select enemy texture (TEMP: first texture) ----
+        // Later you’ll switch based on state + direction
+        if (enemyTextures.empty())
+            continue;
+
+        SDL_Texture* tex = IMG_LoadTexture(renderer,
+            enemyTextures.begin()->second.c_str());
+        int texW, texH;
+        SDL_QueryTexture(tex, nullptr, nullptr, &texW, &texH);
+
+        // ---- 7. Draw sprite column-by-column ----
+        for (int x = drawStartX; x < drawEndX; x++)
+        {
+            if (x < 0 || x >= ScreenHeightWidth.first)
+                continue;
+
+            // ---- Z-buffer check (VERY IMPORTANT) ----
+            if (enemyDist >= zBuffer[x])
+                continue; // wall is closer than enemy
+
+            int texX = (int)(
+                (x - drawStartX) * texW / spriteWidth
+            );
+
+            SDL_Rect srcRect = { texX, 0, 1, texH };
+            SDL_Rect dstRect = {
+                x,
+                drawStartY,
+                1,
+                drawEndY - drawStartY
+            };
+
+            SDL_RenderCopy(renderer, tex, &srcRect, &dstRect);
+        }
+
+        SDL_DestroyTexture(tex); // TEMP (optimize later)
+    }
+    // ============================================================
+
 
     SDL_RenderPresent(renderer); 
 }
@@ -523,4 +607,14 @@ void Game::clean()
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+void Game::loadEnemyTextures(const char* filePath){
+    load_enemy_textures(filePath, enemyTextures);
+}
+
+void Game::addEnemy(float x, float y, float angle) {
+    // Create enemy
+    Enemy enemy(x, y, angle);
+    enemies.push_back(enemy);
 }
