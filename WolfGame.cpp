@@ -679,6 +679,7 @@ void Game::loadEnemyTextures(const char* filePath)
         }
         // else: silently ignore malformed / empty lines
     }
+    std::cout<<enemyTextures.size()<<std::endl;
 }
 
 void Game::addEnemy(float x, float y, float angle) {

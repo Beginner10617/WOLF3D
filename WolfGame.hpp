@@ -55,6 +55,16 @@ private:
     std::vector<Door*> keysHeld; // keys the player has collected
     std::vector<Enemy*> enemies;
     std::map<std::pair<int, int>, SDL_Texture*> enemyTextures;
+
+    int health = 100;
+
+    // weapon (current)
+    int damageMin = 10;
+    int damageMax = 40;
+    int accuracyDivisor = 4; // 75% hit
+    float fireCooldown = 0.0f;
+    float fireRate = 0.2f;
+
 };
 
 #endif
