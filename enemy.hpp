@@ -63,7 +63,7 @@ public:
     int get_dirn_num() const;
     void moveNextFrame();
     void walkTo(float x, float y);
-
+    void alert();
     bool canEnterPain();
     bool randomAttackChance(int);
     void think(const std::pair<float, float>& pos);
@@ -73,4 +73,5 @@ public:
     int rollEnemyDamage();
     int getDamageThisFrame() const { return damageThisFrame; }
     void clearDamageThisFrame() { damageThisFrame = 0; }
+    bool isAlerted() const { return alerted; }
 };

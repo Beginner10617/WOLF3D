@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
     game->placePlayerAt(2, 2, 0.0f);
     game->loadMapDataFromFile("testMap.txt");
     game->loadAllTextures("textureMapping.txt");
-    game->loadEnemyTextures("enemy.txt");
+    game->loadEnemyTextures("enemyFrames.txt");
 
     const int FPS = 60;
     const float frameDelay = 1000.0f / FPS;

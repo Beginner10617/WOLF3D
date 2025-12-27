@@ -40,6 +40,7 @@ public:
     void loadEnemyTextures(const char* filePath);
     bool collidesWithEnemy(float x, float y);
     bool canShootEnemy(float dist);
+    void loadEnemies(const char* filePath);
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -76,7 +77,7 @@ private:
     float fireCooldown = 0.0f;
     float fireDuration = 0.2f;
     bool shotThisFrame = false, hasShot = false;
-
+    float alertRange = 16.0f;
     bool rayCastEnemyToPlayer(const Enemy& enemy);
 
 };

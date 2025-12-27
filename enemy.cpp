@@ -281,3 +281,6 @@ int Enemy::computeEnemyHitChance(float dist) {
 int Enemy::rollEnemyDamage() {
     return baseDamage + (rand() % damageSpread) - (damageSpread / 2);
 }
+void Enemy::alert(){
+    alerted = true;
+}

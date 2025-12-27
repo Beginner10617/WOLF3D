@@ -201,6 +201,7 @@ void Game::update(float deltaTime)
     // Update enemies
     for(const std::unique_ptr<Enemy>& e : enemies){
         e->_process(deltaTime, playerPosition);
+
         // Update canSeePlayer
         bool x = rayCastEnemyToPlayer(*e);
         e->updateCanSeePlayer(x);
@@ -210,6 +211,13 @@ void Game::update(float deltaTime)
             health -= dmg;
             if(health < 0) health = 0;
 
+        // Update Alerts
+        if(shotThisFrame && weaponMultiplier > 1 && !e->isAlerted()){
+            float dist = distSq(playerPosition, e->get_position());
+            dist = pow(dist, 0.5f);
+            if(dist <= alertRange)
+                e->alert();
+        }
     //std::cout << "Player Health: " << health << std::endl;
         }
     }
@@ -911,3 +919,35 @@ bool Game::canShootEnemy(float dist){
     int errorDivisor = ((int) (accuracyDivisor - 1) * (1.0f - t * t)) + 1;
     return (rand() % errorDivisor) != 0;
 }
+
+void Game::loadEnemies(const char* filePath)
+{
+    std::ifstream file(filePath);
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open enemy file: " << filePath << '\n';
+        return;
+    }
+
+    float x, y;
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        // Skip empty lines or comments
+        if (line.empty() || line[0] == '#')
+            continue;
+
+        std::istringstream iss(line);
+        if (!(iss >> x >> y))
+        {
+            std::cerr << "Invalid enemy entry: " << line << '\n';
+            continue;
+        }
+
+        addEnemy(x, y, 0.0f);
+    }
+
+    file.close();
+}
+// Alert system yet to be implemented
