@@ -39,6 +39,7 @@ public:
     void addEnemy(float x, float y, float angle);
     void loadEnemyTextures(const char* filePath);
     bool collidesWithEnemy(float x, float y);
+    bool canShootEnemy(float dist);
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -70,16 +71,13 @@ private:
     int health = 100;
 
     // weapon (current)
-    int damageMin = 10;
-    int damageMax = 40;
+    int weaponMultiplier = 1;
     int accuracyDivisor = 4; // 75% hit
     float fireCooldown = 0.0f;
-    float fireRate = 0.2f;
+    float fireDuration = 0.2f;
+    bool shotThisFrame = false, hasShot = false;
 
-    bool rayCastEnemyToPlayer(
-        const Enemy& enemy,
-        const std::pair<float,float>& playerPos
-    );
+    bool rayCastEnemyToPlayer(const Enemy& enemy);
 
 };
 

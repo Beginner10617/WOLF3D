@@ -3,6 +3,9 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <memory>
+#include <utility>
+
 Game::Game(){
 
 }
@@ -11,6 +14,14 @@ Game::~Game(){
     clean();
 }
 
+
+auto distSq = [](const std::pair<float, float>& a,
+                 const std::pair<float, float>& b)
+{
+    float dx = a.first  - b.first;
+    float dy = a.second - b.second;
+    return dx * dx + dy * dy;
+};
 
 void Game::init(const char *title, int xpos, int ypos, int width, int height, bool fullscreen)
 {
@@ -50,10 +61,19 @@ void Game::handleEvents()
             isRunning = false;
 
         // Hide cursor and lock on first click
-        if (event.type == SDL_MOUSEBUTTONDOWN)
+        if (event.type == SDL_MOUSEBUTTONDOWN  && event.button.button == SDL_BUTTON_LEFT)
         {
             SDL_ShowCursor(SDL_DISABLE);
             SDL_SetRelativeMouseMode(SDL_TRUE);   // capture mouse
+            //std::cout << "Mouse captured\n";
+            if(!hasShot){
+                shotThisFrame = true;
+                hasShot = true;
+                fireCooldown = 0.0f;
+            }
+            else{
+            //    std::cout << "Weapon still cooling down\n";
+            }
         }
 
         // Mouse movement → rotate player
@@ -182,17 +202,23 @@ void Game::update(float deltaTime)
     for(const std::unique_ptr<Enemy>& e : enemies){
         e->_process(deltaTime, playerPosition);
         // Update canSeePlayer
-        e->updateCanSeePlayer(
-            rayCastEnemyToPlayer(*e, playerPosition)
-        );
+        bool x = rayCastEnemyToPlayer(*e);
+        e->updateCanSeePlayer(x);
         int dmg = e->getDamageThisFrame();
         e->clearDamageThisFrame();
-        if(rayCastEnemyToPlayer(*e, playerPosition) && dmg > 0){
+        if(x && dmg > 0){
             health -= dmg;
             if(health < 0) health = 0;
         }
     }
-    std::cout << "Player Health: " << health << std::endl;
+    if(hasShot){
+        fireCooldown += deltaTime;
+        if(fireCooldown >= fireDuration){
+            hasShot = false;
+            shotThisFrame = false;
+        }
+    }
+    //std::cout << "Player Health: " << health << std::endl;
 }
 
 void Game::render()
@@ -417,7 +443,15 @@ void Game::render()
         }
     }
     // Rendering Enemy
-    // SORT the enemies list before here (TBD)
+    std::sort(enemies.begin(), enemies.end(),
+        [&](const std::unique_ptr<Enemy>& e1,
+            const std::unique_ptr<Enemy>& e2)
+        {
+            float d1 = distSq(playerPosition, e1->get_position());
+            float d2 = distSq(playerPosition, e2->get_position());
+            return d1 > d2;   // '>' → farthest first
+        });
+    int enemyShotIndex = -1, currentIndex = 0;
     for (const auto& enemy : enemies) 
     {
         // Enemy position relative to player 
@@ -457,7 +491,14 @@ void Game::render()
 
         int drawStartX = -spriteWidth / 2 + screenX;
         int drawEndX   =  spriteWidth / 2 + screenX;
-
+        int screenCentreX = ScreenHeightWidth.first / 2;
+        if(shotThisFrame &&
+           screenX >= screenCentreX - spriteWidth / 2 &&
+           screenX <= screenCentreX + spriteWidth / 2 &&
+           enemyDist < 5.0f) 
+        {
+            enemyShotIndex = currentIndex;
+        }
         // Select enemy texture 
         if (enemyTextures.empty()){
             //std::cout<<"0 elements in enemyTextures\n";
@@ -502,9 +543,25 @@ void Game::render()
 
             SDL_RenderCopy(renderer.get(), tex, &srcRect, &dstRect);
         }
-
+        currentIndex++;
     }
-
+    if (enemyShotIndex != -1) {
+        float dist = distSq(
+            playerPosition,
+            enemies[enemyShotIndex]->get_position()
+        );
+        dist = pow(dist, 0.5f); // sqrt
+        int dmg=0;
+        if(canShootEnemy(dist))
+            dmg = (rand() & 31) * weaponMultiplier;
+        std::cout << "Enemy at index " << enemyShotIndex << " shot for " << dmg << " damage.\n";
+        if (rayCastEnemyToPlayer(*enemies[enemyShotIndex]))
+            enemies[enemyShotIndex]->takeDamage(dmg); 
+        shotThisFrame = false;
+    }
+    else if (shotThisFrame) {
+        shotThisFrame = false;
+    }
     SDL_RenderPresent(renderer.get()); 
 }
 void Game::loadMapDataFromFile(const char* filename)
@@ -771,15 +828,12 @@ bool Game::collidesWithEnemy(float x, float y) {
     return false;
 }
 
-bool Game::rayCastEnemyToPlayer(
-    const Enemy& enemy,
-    const std::pair<float,float>& playerPos
-) {
+bool Game::rayCastEnemyToPlayer(const Enemy& enemy) {
     float ex = enemy.get_position().first;
     float ey = enemy.get_position().second;
 
-    float px = playerPos.first;
-    float py = playerPos.second;
+    float px = playerPosition.first;
+    float py = playerPosition.second;
 
     // Direction vector
     float dx = px - ex;
@@ -845,8 +899,14 @@ bool Game::rayCastEnemyToPlayer(
     }
 }
 
-/*
-TODO:
-UPDATE ALERTED
-APPLY DAMAGES TO PLAYER AND ENEMIES
-*/
+bool Game::canShootEnemy(float dist){
+    const float MIN_DIST = 1.0f;
+    const float MAX_DIST = 64.0f;   
+
+    dist = std::clamp(dist, MIN_DIST, MAX_DIST);
+    float t = (dist - MIN_DIST) / (MAX_DIST - MIN_DIST);
+
+    // Quadratic falloff (feels very Wolf-like)
+    int errorDivisor = ((int) (accuracyDivisor - 1) * (1.0f - t * t)) + 1;
+    return (rand() % errorDivisor) != 0;
+}

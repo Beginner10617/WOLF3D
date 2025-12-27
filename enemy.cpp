@@ -30,10 +30,11 @@ float Enemy::get_angle() const{
 }
 
 void Enemy::_process(float deltaTime, const std::pair<float, float>& playerPosition) {
+    if(isDead) return;
     updateDirnNumWrt(playerPosition);
     if (!stateLocked)
         thinkTimer += deltaTime;
-
+    
     if(thinkTimer > thinkInterval){
         thinkTimer = 0.0f;
         think(playerPosition);
@@ -48,6 +49,7 @@ void Enemy::_process(float deltaTime, const std::pair<float, float>& playerPosit
                 if(state==ENEMY_DEAD){
                     isDead = true;
                     stateLocked = true;
+                    //std::cout << "Enemy died.\n";
                     return;
                 }
                 if(!walking){   // Pain or shooting end
@@ -186,6 +188,9 @@ void Enemy::think(const std::pair<float, float>& playerPosition){
         justTookDamage = false;
         return;
     }
+    else if(justTookDamage){
+        justTookDamage = false;
+    }
     float dist = std::hypot(
             playerPosition.first  - position.first,
             playerPosition.second - position.second
@@ -242,12 +247,14 @@ void Enemy::think(const std::pair<float, float>& playerPosition){
     }
 }
 
-
 void Enemy::updateCanSeePlayer(bool x){
     canSeePlayer = x;
 }
-void Enemy::takeDamage(){
+void Enemy::takeDamage(int dmg){
     justTookDamage = true;
+    health -= dmg;
+    //std::cout << "Enemy took " << dmg << " damage, health now " << health << std::endl;
+    if(health < 0) health = 0;
 }
 
 bool Enemy::canEnterPain(){
