@@ -137,8 +137,10 @@ void Game::handleEvents()
             if (d.locked && !playerHasKey(d.keyType))
                 return;
 
-            if (d.openAmount == 0.0f)
+            if (d.openAmount == 0.0f){
+                AudioManager::playSFX("door_open", MIX_MAX_VOLUME);
                 d.opening = true;
+            }
         }
     }
 
@@ -959,4 +961,3 @@ void Game::loadEnemies(const char* filePath)
 
     file.close();
 }
-// Add all sounds
