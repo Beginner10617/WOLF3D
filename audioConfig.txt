@@ -10,5 +10,5 @@ pistol : Sounds/Pistol.wav
 die : Sounds/PlayerDies.wav
 pain1 : Sounds/PlayerPain1.wav
 pain2 : Sounds/PlayerPain2.wav
-key : Sounds/Pickup.wav
+key_pickup : Sounds/Pickup.wav
 door_open : Sounds/Door.wav

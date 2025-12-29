@@ -232,6 +232,24 @@ void Game::update(float deltaTime)
             shotThisFrame = false;
         }
     }
+
+    // Update keys pickup
+    for (const auto& [keyType, pos] : keysPositions) {
+        auto [kx, ky] = pos;
+        float keyX = kx + 0.5f;
+        float keyY = ky + 0.5f;
+
+        float dx = keyX - playerPosition.first;
+        float dy = keyY - playerPosition.second;
+        float distanceSq = dx * dx + dy * dy;
+
+        if (distanceSq < keyRadius * keyRadius) {
+            acquireKey(keyType);
+            // Remove key from map
+            keysPositions.erase(keyType);
+            break; // Exit loop since we modified the map
+        }
+    }
 }
 
 void Game::render()
@@ -541,7 +559,7 @@ void Game::render()
             // Z-buffer check (VERY IMPORTANT) 
             if (enemyDist >= zBuffer[x])
                 continue; 
-
+            zBuffer[x] = enemyDist;
             int texX = (int)(
                 (x - drawStartX) * texW / spriteWidth
             );
@@ -582,8 +600,81 @@ void Game::render()
     else if (shotThisFrame) {
         shotThisFrame = false;
     }
+
+    // Rendering Keys
+    for (const auto& keyPos : keysPositions) {
+        int keyType = keyPos.first;
+        auto [kx, ky] = keyPos.second;
+
+        float dx = kx + 0.5f - playerPosition.first;
+        float dy = ky + 0.5f - playerPosition.second;
+
+        float keyDist = sqrt(dx*dx + dy*dy);
+
+        float keyAngle = atan2(dy, dx) - playerAngle;
+
+        while (keyAngle > PI)  keyAngle -= 2 * PI;
+        while (keyAngle < -PI) keyAngle += 2 * PI;
+
+        if (fabs(keyAngle) > halfFov){
+            continue; 
+        }
+
+        int screenX = (int)(
+            (keyAngle + halfFov) / fovRad * ScreenHeightWidth.first
+        );
+
+        float spriteScale = KEY_SIZE; 
+        int spriteHeight = (int)(
+            ScreenHeightWidth.second * spriteScale / keyDist
+        );
+        int spriteWidth = spriteHeight;
+
+        int drawEndY   = ScreenHeightWidth.second / 2 + spriteHeight;
+        int drawStartY = drawEndY - spriteHeight;
+
+        if (drawStartY < 0) drawStartY = 0;
+        if (drawEndY >= ScreenHeightWidth.second)
+            drawEndY = ScreenHeightWidth.second - 1;
+
+        int drawStartX = -spriteWidth / 2 + screenX;
+        int drawEndX   =  spriteWidth / 2 + screenX;
+
+        SDL_Texture* keyTex = nullptr;
+        if (keyType == 1) keyTex = keysTextures[0].get(); // blue key
+        if (keyType == 2) keyTex = keysTextures[1].get(); // red key
+        if (keyType == 3) keyTex = keysTextures[2].get(); // gold key
+
+        if (!keyTex) continue;
+
+        for (int x = drawStartX; x < drawEndX; x++)
+        {
+            if (x < 0 || x >= ScreenHeightWidth.first)
+                continue;
+
+            if (keyDist >= zBuffer[x])
+                continue; 
+            zBuffer[x] = keyDist;
+
+            int texW, texH;
+            SDL_QueryTexture(keyTex, nullptr, nullptr, &texW, &texH);
+            int texX = (int)(
+                (x - drawStartX) * texW / spriteWidth
+            );
+            SDL_Rect srcRect = { texX, 0, 1, texH };
+            SDL_Rect dstRect = {
+                x,
+                drawStartY,
+                1,
+                drawEndY - drawStartY
+            };
+            SDL_RenderCopy(renderer.get(), keyTex, &srcRect, &dstRect);
+        }
+    }
+
     SDL_RenderPresent(renderer.get()); 
 }
+
 void Game::loadMapDataFromFile(const char* filename)
 {
     std::ifstream file(filename);
@@ -591,30 +682,60 @@ void Game::loadMapDataFromFile(const char* filename)
         std::cerr << "Failed to open map data file: " << filename << std::endl;
         return;
     }
+
     Map.clear();
+    doors.clear();
+
     std::string line;
+    size_t rowIndex = 0;
+
     while (std::getline(file, line)) {
-        std::vector<int> row; 
-        for (char& ch : line) {
-            if (ch >= '6' && ch <= '9') {
-                int t = ch - '0';
+        std::vector<int> row;
+        std::istringstream iss(line);
+        std::string token;
+
+        while (iss >> token) {                 // space-separated
+            // Key handling
+            if(token == "B"){
+                keysPositions[1] = {row.size(), rowIndex};
+                row.push_back(0);
+                continue;
+            }
+            else if(token == "R"){
+                keysPositions[2] = {row.size(), rowIndex};
+                row.push_back(0);
+                continue;
+            }
+            else if(token == "G"){
+                keysPositions[3] = {row.size(), rowIndex};
+                row.push_back(0);
+                continue;
+            }
+
+            int value = std::stoi(token);      // parses 10, 12, etc.
+
+            // Door handling
+            if (value >= 6 && value <= 9) {
                 Door d;
                 d.openAmount = 0.0f;
                 d.opening = false;
-                if (t == 6) { d.locked = false; d.keyType = 0; }
-                if (t == 7) { d.locked = true;  d.keyType = 1; }  // blue key
-                if (t == 8) { d.locked = true;  d.keyType = 2; }  // red key
-                if (t == 9) { d.locked = true;  d.keyType = 3; }  // gold key
-                
-                doors[{Map.size(), row.size()}] = d;
+
+                if (value == 6) { d.locked = false; d.keyType = 0; }
+                if (value == 7) { d.locked = true;  d.keyType = 1; }
+                if (value == 8) { d.locked = true;  d.keyType = 2; }
+                if (value == 9) { d.locked = true;  d.keyType = 3; }
+
+                doors[{ rowIndex, row.size() }] = d;
             }
-            if (ch >= '0' && ch <= '9') {
-                row.push_back(ch - '0');
-            }
+
+            row.push_back(value);
         }
+
         Map.push_back(row);
+        rowIndex++;
     }
 }
+
 void Game::placePlayerAt(int x, int y, float angle) {
     playerPosition = {static_cast<double>(x), static_cast<double>(y)};
     playerAngle = angle;
@@ -714,7 +835,7 @@ void Game::loadAllTextures(const char* filePath)
         return;
     }
 
-    enum Section { NONE, WALLS, FLOORS, CEILS };
+    enum Section { NONE, WALLS, FLOORS, CEILS, KEYS };
     Section currentSection = NONE;
 
     std::string line;
@@ -743,6 +864,10 @@ void Game::loadAllTextures(const char* filePath)
             currentSection = CEILS;
             continue;
         }
+        if (low == "[keys]") {
+            currentSection = KEYS;
+            continue;
+        }
 
         // If it’s not a section header, it must be a file path
         if (currentSection == WALLS) {
@@ -753,6 +878,9 @@ void Game::loadAllTextures(const char* filePath)
         }
         else if (currentSection == CEILS) {
             addCeilingTexture(line.c_str());
+        }
+        else if (currentSection == KEYS) {
+            loadKeysTexture(line.c_str());
         }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
@@ -960,4 +1088,24 @@ void Game::loadEnemies(const char* filePath)
     }
 
     file.close();
+}
+
+void Game::loadKeysTexture(const char* filePath)
+{
+    SDL_Texture* raw = IMG_LoadTexture(renderer.get(), filePath);
+    if (!raw) {
+        std::cerr << "Failed to load key texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+
+    keysTextures.emplace_back(raw, SDL_DestroyTexture);
+}
+
+void Game::acquireKey(int keyType) {
+    if (!playerHasKey(keyType)) {
+        keysHeld.push_back(keyType);
+        std::cout << "Acquired key of type: " << keyType << "\n";
+        AudioManager::playSFX("key_pickup", MIX_MAX_VOLUME / 2);
+    }
 }

@@ -42,6 +42,8 @@ public:
     bool collidesWithEnemy(float x, float y);
     bool canShootEnemy(float dist);
     void loadEnemies(const char* filePath);
+    void acquireKey(int keyType);
+    void loadKeysTexture(const char* filePath);
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -90,6 +92,10 @@ private:
     float fireCooldown = 0.2f;
     bool shotThisFrame = false, hasShot = false;
     bool rayCastEnemyToPlayer(const Enemy& enemy);
+
+    std::map<int, std::pair<int, int>> keysPositions;
+    std::vector<SDLTexturePtr> keysTextures;
+    float KEY_SIZE = 0.4f, keyRadius = 1.0f;
 };
 
 #endif
