@@ -67,11 +67,19 @@ void Game::handleEvents()
             SDL_ShowCursor(SDL_DISABLE);
             SDL_SetRelativeMouseMode(SDL_TRUE);   // capture mouse
             //std::cout << "Mouse captured\n";
-            if(!hasShot){
-                shotThisFrame = true;
-                hasShot = true;
-                fireCooldown = 0.0f;
-                AudioManager::playSFX(weapons[currentWeaponIndex].soundName, MIX_MAX_VOLUME);
+            if(!hasShot && weapons.size() > 0){
+                if(weapons[currentWeaponIndex].ammo == 0 && weapons[currentWeaponIndex].multiplier > 1){
+                    std::cout << "Out of ammo!\n";
+                }
+                else{
+                    shotThisFrame = true;
+                    hasShot = true;
+                    fireCooldown = 0.0f;
+                    if(weapons[currentWeaponIndex].multiplier > 1){
+                        weapons[currentWeaponIndex].ammo--;
+                    }
+                    AudioManager::playSFX(weapons[currentWeaponIndex].soundName, MIX_MAX_VOLUME);
+                }
             }
             else{
             //    std::cout << "Weapon still cooling down\n";
@@ -142,6 +150,20 @@ void Game::handleEvents()
                 d.opening = true;
             }
         }
+    }
+
+    // Weapon switching (number keys)
+    if(keystate[SDL_SCANCODE_1]){
+        if(playerHasWeapon(1))
+            currentWeaponIndex = 0;
+    }
+    if(keystate[SDL_SCANCODE_2]){
+        if(playerHasWeapon(2))
+            currentWeaponIndex = 1;
+    }
+    if(keystate[SDL_SCANCODE_3]){
+        if(playerHasWeapon(3))
+            currentWeaponIndex = 2;
     }
 
 }
@@ -247,6 +269,24 @@ void Game::update(float deltaTime)
             acquireKey(keyType);
             // Remove key from map
             keysPositions.erase(keyType);
+            break; // Exit loop since we modified the map
+        }
+    }
+
+    // Update weapons pickup
+    for (const auto& [weaponType, pos] : weaponsPositions) {
+        auto [wx, wy] = pos;
+        float weaponX = wx + 0.5f;
+        float weaponY = wy + 0.5f;
+
+        float dx = weaponX - playerPosition.first;
+        float dy = weaponY - playerPosition.second;
+        float distanceSq = dx * dx + dy * dy;
+
+        if (distanceSq < weaponRadius * weaponRadius) {
+            acquireWeapon(weaponType);
+            // Remove weapon from map
+            weaponsPositions.erase(weaponType);
             break; // Exit loop since we modified the map
         }
     }
@@ -404,6 +444,11 @@ void Game::render()
         float maxLightDist = 8.0f;
         float shade = 1.0f - std::min(correctedDistance / maxLightDist, 1.0f);
         Uint8 brightness = (Uint8)(40 + shade * 215);
+
+        // Darken horizontal walls (classic Wolf3D trick)
+        if (hitSide == 1) {
+            brightness = (Uint8)(brightness * 0.7f);
+        }
         SDL_SetTextureColorMod(wallTextures[texId].get(),
                             brightness, brightness, brightness);
         // --------------------------------------
@@ -672,6 +717,79 @@ void Game::render()
         }
     }
 
+    // Rendering Weapon collectible
+    for (const auto weaponPos : weaponsPositions){
+        int weaponType = weaponPos.first;
+        auto [wx, wy] = weaponPos.second;
+        float dx = wx + 0.5f - playerPosition.first;
+        float dy = wy + 0.5f - playerPosition.second;
+
+        float wDist = sqrt(dx*dx + dy*dy);
+
+        float wAngle = atan2(dy, dx) - playerAngle;
+
+        while (wAngle > PI)  wAngle -= 2 * PI;
+        while (wAngle < -PI) wAngle += 2 * PI;
+
+        if (fabs(wAngle) > halfFov){
+            continue; 
+        }
+
+        int screenX = (int)(
+            (wAngle + halfFov) / fovRad * ScreenHeightWidth.first
+        );
+
+        float spriteScale = WEAPON_SIZE;
+
+        if (weaponType == 3) // rifle
+            spriteScale *= 1.9f;
+
+        int spriteHeight = (int)(
+            ScreenHeightWidth.second * spriteScale / wDist
+        );
+        int spriteWidth = spriteHeight;
+
+        int drawEndY   = ScreenHeightWidth.second / 2 + spriteHeight;
+        int drawStartY = drawEndY - spriteHeight;
+
+        if (drawStartY < 0) drawStartY = 0;
+        if (drawEndY >= ScreenHeightWidth.second)
+            drawEndY = ScreenHeightWidth.second - 1;
+
+        int drawStartX = -spriteWidth / 2 + screenX;
+        int drawEndX   =  spriteWidth / 2 + screenX;
+
+        SDL_Texture* wTex = nullptr;
+        if (weaponType == 1) wTex = weaponsTextures[0].get(); // knife
+        if (weaponType == 2) wTex = weaponsTextures[1].get(); // pistol
+        if (weaponType == 3) wTex = weaponsTextures[2].get(); // shotgun/ rifle
+
+        if (!wTex) continue;
+        
+        for (int x = drawStartX; x < drawEndX; x++)
+        {
+            if (x < 0 || x >= ScreenHeightWidth.first)
+                continue;
+
+            if (wDist >= zBuffer[x])
+                continue; 
+            zBuffer[x] = wDist;
+
+            int texW, texH;
+            SDL_QueryTexture(wTex, nullptr, nullptr, &texW, &texH);
+            int texX = (int)(
+                (x - drawStartX) * texW / spriteWidth
+            );
+            SDL_Rect srcRect = { texX, 0, 1, texH };
+            SDL_Rect dstRect = {
+                x,
+                drawStartY,
+                1,
+                drawEndY - drawStartY
+            };
+            SDL_RenderCopy(renderer.get(), wTex, &srcRect, &dstRect);
+        }
+    }
     SDL_RenderPresent(renderer.get()); 
 }
 
@@ -712,6 +830,25 @@ void Game::loadMapDataFromFile(const char* filename)
                 continue;
             }
 
+            // Weapon handling
+            if(token == "K"){
+                weaponsPositions[1] = {row.size(), rowIndex};
+                row.push_back(0);
+                continue;
+            }
+            else if(token == "P"){
+                weaponsPositions[2] = {row.size(), rowIndex};
+                row.push_back(0);
+                continue;
+            }
+            else if(token == "S"){
+                weaponsPositions[3] = {row.size(), rowIndex};
+                std::cout << "Added shotgun position at (" << row.size() << ", " << rowIndex << ")\n";
+                row.push_back(0);
+                continue;
+            }
+            
+                
             int value = std::stoi(token);      // parses 10, 12, etc.
 
             // Door handling
@@ -835,7 +972,7 @@ void Game::loadAllTextures(const char* filePath)
         return;
     }
 
-    enum Section { NONE, WALLS, FLOORS, CEILS, KEYS };
+    enum Section { NONE, WALLS, FLOORS, CEILS, KEYS, WEAPONS };
     Section currentSection = NONE;
 
     std::string line;
@@ -868,6 +1005,10 @@ void Game::loadAllTextures(const char* filePath)
             currentSection = KEYS;
             continue;
         }
+        if (low == "[weapons]") {
+            currentSection = WEAPONS;
+            continue;
+        }
 
         // If it’s not a section header, it must be a file path
         if (currentSection == WALLS) {
@@ -881,6 +1022,9 @@ void Game::loadAllTextures(const char* filePath)
         }
         else if (currentSection == KEYS) {
             loadKeysTexture(line.c_str());
+        }
+        else if (currentSection == WEAPONS) {
+            loadWeaponsTexture(line.c_str());
         }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
@@ -1106,6 +1250,52 @@ void Game::acquireKey(int keyType) {
     if (!playerHasKey(keyType)) {
         keysHeld.push_back(keyType);
         std::cout << "Acquired key of type: " << keyType << "\n";
-        AudioManager::playSFX("key_pickup", MIX_MAX_VOLUME / 2);
+        AudioManager::playSFX("pickup", MIX_MAX_VOLUME / 2);
     }
+}
+void Game::loadWeaponsTexture(const char* filePath)
+{
+    SDL_Texture* raw = IMG_LoadTexture(renderer.get(), filePath);
+    if (!raw) {
+        std::cerr << "Failed to load weapon texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+
+    weaponsTextures.emplace_back(raw, SDL_DestroyTexture);
+}   
+
+void Game::acquireWeapon(int weaponType) {
+    if (weaponType < 1 || weaponType > 3) {
+        std::cerr << "Invalid weapon type: " << weaponType << "\n";
+        return;
+    }
+    switch(weaponType){
+        case 1:
+            weapons.push_back({1, 100, 0, 2.0f, 0.0f, 8.0f, "knife"});
+            break;
+        case 2:
+            weapons.push_back({2, 4, 30, 70.0f, 0.2f, 16.0f, "pistol"});
+            break;
+        case 3:
+            weapons.push_back({3, 6, 50, 90.0f, 0.5f, 24.0f, "rifle"});
+            break;
+        default:
+            std::cerr << "Unhandled weapon type: " << weaponType << "\n";
+    }
+    //{1, 100, 0, true, 2.0f, 0.0f, 8.0f, "knife"},   // knife (K)
+    //{2, 4, 0, false, 70.0f, 0.2f, 16.0f, "pistol"},  // pistol (P)
+    //{3, 6, 0, false, 90.0f, 0.5f, 24.0f, "rifle"}   // rifle (S)
+    currentWeaponIndex = weaponType - 1;
+    std::cout << "Acquired weapon of type: " << weaponType << "\n";
+    AudioManager::playSFX("pickup", MIX_MAX_VOLUME / 2);
+}
+
+bool Game::playerHasWeapon(int weaponType) {
+    for (const auto& w : weapons) {
+        if (w.multiplier == weaponType) {
+            return true;
+        }
+    }
+    return false;
 }

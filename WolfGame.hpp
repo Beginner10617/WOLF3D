@@ -44,6 +44,9 @@ public:
     void loadEnemies(const char* filePath);
     void acquireKey(int keyType);
     void loadKeysTexture(const char* filePath);
+    void acquireWeapon(int weaponType);
+    bool playerHasWeapon(int weaponType);
+    void loadWeaponsTexture(const char* filePath);
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -78,17 +81,18 @@ private:
     struct weapon {
         int multiplier; // damage multiplier
         int accuracy;   // higher is better (1=never hit, 2=50%, 3=66%, etc)
+        int ammo;
         float range; // >90 for infinite (map size)
         float coolDownTime;
         float alertRadius;
         std::string soundName;
     };
     std::vector<weapon> weapons = {
-        {1, 100, 2.0f, 0.0f, 8.0f, "knife"},   // knife
-        {2, 4, 70.0f, 0.2f, 16.0f, "pistol"},  // pistol
-        {3, 6, 90.0f, 0.5f, 24.0f, "rifle"}   // rifle
+        //{1, 100, 0, true, 2.0f, 0.0f, 8.0f, "knife"},   // knife (K)
+        //{2, 4, 0, false, 70.0f, 0.2f, 16.0f, "pistol"},  // pistol (P)
+        //{3, 6, 0, false, 90.0f, 0.5f, 24.0f, "rifle"}   // rifle (S)
     };
-    int currentWeaponIndex = 1;
+    int currentWeaponIndex;
     float fireCooldown = 0.2f;
     bool shotThisFrame = false, hasShot = false;
     bool rayCastEnemyToPlayer(const Enemy& enemy);
@@ -96,6 +100,10 @@ private:
     std::map<int, std::pair<int, int>> keysPositions;
     std::vector<SDLTexturePtr> keysTextures;
     float KEY_SIZE = 0.4f, keyRadius = 1.0f;
+
+    std::map<int, std::pair<int, int>> weaponsPositions;
+    std::vector<SDLTexturePtr> weaponsTextures;
+    float WEAPON_SIZE = 0.5f, weaponRadius = 1.9f;
 };
 
 #endif
