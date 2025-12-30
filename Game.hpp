@@ -77,6 +77,8 @@ public:
     void loadHealthPackTexture(const char* filePath);
     void loadAmmoPackTexture(const char* filePath);
     void spawnRandomAmmoPack(std::pair<int, int>);
+    void addDecorationTexture(char x, const char* filePath);
+    void loadDecorationTextures(const char* filePath);
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -132,12 +134,12 @@ private:
     std::map<int, std::pair<int, int>> keysPositions, keyWidthsHeights;
     std::vector<SDLTexturePtr> keysTextures;
     float keyRadius = 1.0f;
-    std::map<int, int> keyTypeToSpriteID;
+    std::map<int, int> keyTypeToSpriteID; // B R G
 
     std::map<int, std::pair<int, int>> weaponsPositions, weaponWidthsHeights;
     std::vector<SDLTexturePtr> weaponsTextures;
     float weaponRadius = 1.0f;
-    std::map<int, int> weaponTypeToSpriteID;
+    std::map<int, int> weaponTypeToSpriteID; // K P S
 
     // healthPack Type and its index 
     //(index is nothing but the spriteID)
@@ -149,7 +151,8 @@ private:
     std::vector<SDLTexturePtr> healthPackTextures; // except vectors ofcourse
     std::map<int, int> healAmounts = {{1,10}, {2,25}};    
     float healthPackRadius = 1.0f;
-    // health packs: 1 = small (+10), 2 = large (+25)
+    // health packs: 1 = small (+10), 2 = large (+25) 
+    // H h
 
     // Same Logic for Ammo packs
     std::map<std::pair<int, int>, std::pair<int, int>> AmmoPackPositions;
@@ -160,6 +163,10 @@ private:
     std::vector<SDLTexturePtr> ammoPackTextures;
     std::map<int, int> ammoAmounts = {{1,15}, {2,10}, {3,5}, {4,5}};
     float ammoPackRadius = 1.0f;
+    // A a
+
+    std::map<char, SDLTexturePtr> DecorationTextures;
+    std::map<char, std::pair<int, int>> DecorationTextureWidthsHeights;
 
     std::vector<Sprite> AllSpriteTextures;
     std::vector<int> renderOrder; // holds spriteIDs

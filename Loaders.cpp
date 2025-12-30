@@ -112,8 +112,34 @@ void Game::loadMapDataFromFile(const char* filename)
                 continue;
             }
                 
-            int value = std::stoi(token);      // parses 10, 12, etc.
-
+            // All other alphabets are taken as decoratives
+            char x = '0';
+            if(token.size()==1)
+                x = token.c_str()[0];
+            if((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z')){
+                if (DecorationTextures.find(x) != DecorationTextures.end()) {
+                    int spriteID = AllSpriteTextures.size();
+                    AllSpriteTextures.push_back(
+                        Sprite{
+                            spriteID, 
+                            std::pair<float, float>{row.size(), rowIndex},
+                            DecorationTextures[x],
+                            DecorationTextureWidthsHeights[x].first,
+                            DecorationTextureWidthsHeights[x].second,
+                        }
+                    );
+                    row.push_back(0);
+                    continue;
+                }
+            }
+            int value;
+            try{
+                value = std::stoi(token);      // parses 10, 12, etc.
+            }
+            catch(const std::runtime_error& e){
+                std::cout << "Can't load map, erroneous data\n"<< e.what() << std::endl;
+                continue;
+            }
             // Door handling
             if (value >= 6 && value <= 9) {
                 Door d;
@@ -370,4 +396,75 @@ void Game::loadAmmoPackTexture(const char* filePath){
     int ammoPackType = ammoPackTextures.size() + 1;
     ammoPackWidthsHeights[ammoPackType] = std::make_pair(width, height);
     ammoPackTextures.emplace_back(raw, SDL_DestroyTexture);
+}
+
+void Game::loadDecorationTextures(const char* filePath)
+{
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open decoration texture file: "
+                  << filePath << "\n";
+        return;
+    }
+
+    std::string line;
+    int lineNumber = 0;
+
+    while (std::getline(file, line)) {
+        lineNumber++;
+
+        // Trim leading whitespace
+        size_t start = line.find_first_not_of(" \t");
+        if (start == std::string::npos)
+            continue;
+
+        // Ignore comments
+        if (line[start] == '#')
+            continue;
+
+        // Format: <char> : <filepath>
+        size_t colon = line.find(':', start);
+        if (colon == std::string::npos) {
+            std::cerr << "Invalid format at line "
+                      << lineNumber << "\n";
+            continue;
+        }
+
+        // Extract key
+        std::string keyStr = line.substr(start, colon - start);
+        // Trim whitespace from keyStr (both ends)
+        size_t keyStart = keyStr.find_first_not_of(" \t");
+        size_t keyEnd   = keyStr.find_last_not_of(" \t");
+
+        if (keyStart == std::string::npos) {
+            std::cerr << "Invalid key at line "
+                    << lineNumber << "\n";
+            continue;
+        }
+
+        keyStr = keyStr.substr(keyStart, keyEnd - keyStart + 1);
+
+        if (keyStr.length() != 1) {
+            std::cerr << "Invalid key at line "
+                      << lineNumber << "\n";
+            continue;
+        }
+
+        char key = keyStr[0];
+
+        // Extract filepath
+        size_t pathStart = line.find_first_not_of(" \t", colon + 1);
+        if (pathStart == std::string::npos) {
+            std::cerr << "Missing filepath at line "
+                      << lineNumber << "\n";
+            continue;
+        }
+
+        std::string texturePath = line.substr(pathStart);
+
+        // Load the texture
+        addDecorationTexture(key, texturePath.c_str());
+    }
+
+    std::cout << "Decoration textures loaded successfully\n";
 }

@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
     // Load Map, Textures and Audio
     game->loadAllTextures("textureMapping.txt");
     game->loadEnemyTextures("enemyFrames.txt");
+    game->loadDecorationTextures("Decorations.txt");
     AudioManager::loadAllAudios("audioConfig.txt");
     game->loadMapDataFromFile("testMap.txt");
 

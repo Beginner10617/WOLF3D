@@ -70,3 +70,33 @@ void Game::addCeilingTexture(const char* filePath) {
     ceilingTextureWidths.push_back(width);
     ceilingTextureHeights.push_back(height);
 }
+
+void Game::addDecorationTexture(char x, const char* filePath)
+{
+    SDL_Texture* raw = IMG_LoadTexture(renderer.get(), filePath);
+    if (!raw) {
+        std::cerr << "Failed to load decoration texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+
+    if (DecorationTextures.find(x) != DecorationTextures.end()) {
+        std::cerr << "Decoration texture already exists for key: " << x << "\n";
+        SDL_DestroyTexture(raw);
+        return;
+    }
+
+    DecorationTextures.emplace(
+        x,
+        SDLTexturePtr(raw, SDL_DestroyTexture)
+    );
+
+    int width = 0, height = 0;
+    if (SDL_QueryTexture(raw, nullptr, nullptr, &width, &height) != 0) {
+        std::cerr << "Failed to query texture: "
+                  << SDL_GetError() << "\n";
+        return;
+    }
+
+    DecorationTextureWidthsHeights[x] = { width, height };
+}
