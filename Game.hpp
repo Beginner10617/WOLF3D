@@ -8,6 +8,8 @@
 #include <utility>
 #include <map>
 #include "AudioManager.hpp"
+
+// Utilities
 using SDLWindowPtr =
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)>;
 
@@ -25,6 +27,21 @@ struct Sprite {
     bool isEnemy = false;
     bool active = true;
 };
+
+auto distSq = [](const std::pair<float, float>& a,
+                 const std::pair<float, float>& b)
+{
+    float dx = a.first  - b.first;
+    float dy = a.second - b.second;
+    return dx * dx + dy * dy;
+};
+
+static std::string toLower(const std::string &s) {
+    std::string r = s;
+    std::transform(r.begin(), r.end(), r.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    return r;
+}
 
 class Game{
 public:

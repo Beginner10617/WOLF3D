@@ -1,4 +1,4 @@
-#include "WolfGame.hpp"
+#include "Game.hpp"
 #include <iostream>
 Game* game = nullptr;
 
