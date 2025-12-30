@@ -1,5 +1,4 @@
 #include "Game.hpp"
-#include <iostream>
 #include <fstream>
 #include <sstream>
 void Game::loadMapDataFromFile(const char* filename)
@@ -77,16 +76,18 @@ void Game::loadMapDataFromFile(const char* filename)
             
             // Health Pack handling
             if(token == "h"){
-                HealthPackPositions[1] = {row.size(), rowIndex};
-                healthPackTypeToSpriteID[1] = AllSpriteTextures.size();
-                AllSpriteTextures.push_back(Sprite{ static_cast<int>(AllSpriteTextures.size()), std::pair<float, float>{row.size(), rowIndex}, healthPackTextures[0],
+                int spriteID = AllSpriteTextures.size();
+                HealthPackPositions[{1, spriteID}] = {row.size(), rowIndex};
+
+                AllSpriteTextures.push_back(Sprite{ static_cast<int>(spriteID), std::pair<float, float>{row.size(), rowIndex}, healthPackTextures[0],
                  healthPackWidthsHeights[1].first, healthPackWidthsHeights[1].second});
                 row.push_back(0);
                 continue;
             }
             else if(token == "H"){
-                HealthPackPositions[2] = {row.size(), rowIndex};
-                healthPackTypeToSpriteID[2] = AllSpriteTextures.size();
+                int spriteID = AllSpriteTextures.size();
+                HealthPackPositions[{2, spriteID}] = {row.size(), rowIndex};
+                
                 AllSpriteTextures.push_back(Sprite{ static_cast<int>(AllSpriteTextures.size()), std::pair<float, float>{row.size(), rowIndex}, healthPackTextures[1],
                  healthPackWidthsHeights[2].first, healthPackWidthsHeights[2].second});
                 row.push_back(0);

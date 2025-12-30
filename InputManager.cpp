@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include <iostream>
+
 void Game::handleEvents()
 {
     SDL_Event event;

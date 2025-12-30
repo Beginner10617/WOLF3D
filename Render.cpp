@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include <iostream>
+
 void Game::render()
 {
     SDL_SetRenderDrawColor(renderer.get(), 40, 40, 40, 255);
@@ -242,6 +242,10 @@ void Game::render()
         }
         // Sprite position relative to player
         auto [sx, sy] = sprite.position;
+        if(!sprite.isEnemy){
+            sx += 0.5f;
+            sy += 0.5f;
+        }
         float dx = sx - playerPosition.first;
         float dy = sy - playerPosition.second;
         float spriteDist = sqrt(dx*dx + dy*dy);

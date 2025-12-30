@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include <iostream>
+
 void Game::update(float deltaTime)
 {
     // Normalize movement direction
@@ -169,12 +169,12 @@ void Game::update(float deltaTime)
     }
 
     // Update health pack pickup
-    for (const auto& [hpType, pos] : HealthPackPositions) {
+    for (const auto& [key, pos] : HealthPackPositions) {
         if(health >= 100)
             continue;
-        if(healthPackTypeToSpriteID.find(hpType) == healthPackTypeToSpriteID.end())
-            continue;// invalid hpType, or health sprite not loaded
-        if(!AllSpriteTextures[healthPackTypeToSpriteID[hpType]].active)
+        auto [hpType, spriteID] = key;
+            
+        if(!AllSpriteTextures[spriteID].active)
             continue; // already picked up
         auto [hx, hy] = pos;
         float healthPackX = hx + 0.5f;
@@ -188,7 +188,7 @@ void Game::update(float deltaTime)
             if(health > 100) health = 100;
             AudioManager::playSFX("pickup", MIX_MAX_VOLUME / 2);
             // Remove health pack from map
-            AllSpriteTextures[healthPackTypeToSpriteID[hpType]].active = false;
+            AllSpriteTextures[spriteID].active = false;
             break; // Exit loop since we modified the map
         }
     }

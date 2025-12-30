@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include <iostream>
+
 void Game::addEnemy(float x, float y, float angle) {
     enemies.push_back(std::make_unique<Enemy>(x, y, angle));
 }

@@ -3,7 +3,7 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "enemy.hpp"
-#include <stdio.h>
+#include <iostream>
 #include <vector>
 #include <utility>
 #include <map>
@@ -130,18 +130,24 @@ private:
 
     std::map<int, std::pair<int, int>> keysPositions, keyWidthsHeights;
     std::vector<SDLTexturePtr> keysTextures;
-    float KEY_SIZE = 0.4f, keyRadius = 1.6f;
+    float keyRadius = 1.6f;
     std::map<int, int> keyTypeToSpriteID;
 
     std::map<int, std::pair<int, int>> weaponsPositions, weaponWidthsHeights;
     std::vector<SDLTexturePtr> weaponsTextures;
-    float WEAPON_SIZE = 0.5f, weaponRadius = 1.6f;
+    float weaponRadius = 1.6f;
     std::map<int, int> weaponTypeToSpriteID;
 
-    std::map<int, std::pair<int, int>> HealthPackPositions, healthPackWidthsHeights;
+    // healthPack Type and its index 
+    //(index is nothing but the spriteID)
+    //(there can be multiple pack of same type)
+    std::map<std::pair<int, int>, std::pair<int, int>> HealthPackPositions;
+    
+    // Keys for the following are health pack type only
+    std::map<int, std::pair<int, int>> healthPackWidthsHeights;
     std::vector<SDLTexturePtr> healthPackTextures;
-    float HEALTH_PACK_SIZE = 0.5f, healthPackRadius = 1.9f;
-    std::map<int, int> healthPackTypeToSpriteID, healAmounts = {{1,10}, {2,25}};    
+    std::map<int, int> healAmounts = {{1,10}, {2,25}};    
+    float healthPackRadius = 1.9f;
     // health packs: 1 = small (+10), 2 = large (+25)
 
     std::vector<Sprite> AllSpriteTextures;

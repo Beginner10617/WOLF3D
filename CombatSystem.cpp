@@ -1,5 +1,4 @@
 #include "Game.hpp"
-#include <iostream>
 
 bool Game::canShootEnemy(float dist){
     const float MIN_DIST = 1.0f;
