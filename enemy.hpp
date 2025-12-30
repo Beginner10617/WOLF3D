@@ -30,6 +30,7 @@ class Enemy {
     bool justTookDamage = false;
     bool isDead = false;
     bool stateLocked = false;
+    bool canWalkThisFrame = true;
     int damageThisFrame = 0;
 
     // combat stats
@@ -76,4 +77,7 @@ public:
     void clearDamageThisFrame() { damageThisFrame = 0; }
     bool isAlerted() const { return alerted; }
     int get_spriteID() const { return spriteID; }
+    std::pair<float, float> askGameToMove(float deltaTime);
+    void cancelWalkThisFrame() { canWalkThisFrame = false; }
+    void allowWalkNextFrame() { canWalkThisFrame = true; }
 };

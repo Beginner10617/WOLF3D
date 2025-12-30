@@ -17,9 +17,14 @@ void Game::update(float deltaTime)
     float newY = playerPosition.second + playerMoveDirection.second * playerSpeed * deltaTime;
     int mx = (int)newX;
     int my = (int)playerPosition.second;
-    if (my < 0 || my >= Map.size()) return;
-    if (mx < 0 || mx >= Map[my].size()) return;
-
+    if (my < 0 || my >= Map.size()){
+        std::cout << "Y out of bounds: " << my << "\n";
+        return;
+    }
+    if (mx < 0 || mx >= Map[my].size()) {
+        std::cout << "X out of bounds: " << mx << "\n";
+        return;
+    }
     int tileX = Map[(int)playerPosition.second][(int)(newX + playerSquareSize * (newX>playerPosition.first?1:-1))];
     int tileY = Map[(int)(newY + playerSquareSize * (newY>playerPosition.second?1:-1))][(int)playerPosition.first];
     if (tileX == 0 ||
@@ -58,6 +63,13 @@ void Game::update(float deltaTime)
 
     // Update enemies
     for(const std::unique_ptr<Enemy>& e : enemies){
+        auto epos = e->askGameToMove(deltaTime);
+        if(canMoveTo(epos.first, epos.second)){
+            e->allowWalkNextFrame();
+        }
+        else{
+            e->cancelWalkThisFrame();
+        }
         e->_process(deltaTime, playerPosition, playerAngle);
 
         // Update canSeePlayer
@@ -68,15 +80,13 @@ void Game::update(float deltaTime)
         if(x && dmg > 0){
             health -= dmg;
             if(health < 0) health = 0;
-
+        }
         // Update Alerts
-        if(shotThisFrame && weapons[currentWeapon].multiplier > 1 && !e->isAlerted()){
+        if(shotThisFrame && currentWeapon > 1 && !e->isAlerted()){
             float dist = distSq(playerPosition, e->get_position());
             dist = pow(dist, 0.5f);
             if(dist <= weapons[currentWeapon].alertRadius)
                 e->alert();
-        }
-    //std::cout << "Player Health: " << health << std::endl;
         }
 
         // Enemy position relative to player 

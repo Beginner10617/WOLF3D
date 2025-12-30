@@ -82,12 +82,25 @@ void Enemy::_process(float deltaTime, const std::pair<float, float>& playerPosit
             setAnimState(ENEMY_IDLE, false);
             stateLocked = false;
         } else {
-            position.first  += step * std::cos(angle);
-            position.second -= step * std::sin(angle);
+            if (canWalkThisFrame) {
+                position.first  += step * std::cos(angle);
+                position.second -= step * std::sin(angle);
+            }
+            else{
+                destinationOfWalk = position; // cancel walk
+                walking = false;
+                setAnimState(ENEMY_IDLE, false);
+                stateLocked = false;
+            }
         }
     }
 }
-
+std::pair<float, float> Enemy::askGameToMove(float deltaTime){
+    float step = moveSpeed * deltaTime + 1.0f; // small buffer
+    float newX = position.first + step * std::cos(angle);
+    float newY = position.second - step * std::sin(angle);
+    return std::make_pair(newX, newY);
+}
 void Enemy::addFrame(EnemyState s, int frame) {
     Animations[s].push_back(frame);
 }
@@ -234,6 +247,7 @@ void Enemy::think(const std::pair<float, float>& playerPosition, float playerAng
         return;
     }
     if(canSeePlayer || alerted){
+        if(alerted) std::cout<< position.first<<", "<<position.second<<" is alerted.\n";
         if(!walking){
             // Vector to target
             float dx = playerPosition.first - position.first;
@@ -312,4 +326,5 @@ int Enemy::rollEnemyDamage() {
 }
 void Enemy::alert(){
     alerted = true;
+    std::cout << "Enemy alerted!\n";
 }

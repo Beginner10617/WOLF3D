@@ -168,7 +168,7 @@ void Game::acquireWeapon(int weaponType) {
     }
     switch(weaponType){
         case 1:
-            weapons[1] = weapon({1, 100, 0, 2.0f, 0.0f, 8.0f, "knife"});
+            weapons[1] = weapon({1, 100, 0, 2.0f, 0.0f, 0.0f, "knife"});
             break;
         case 2:
             weapons[2] = weapon({2, 4, 30, 70.0f, 0.2f, 16.0f, "pistol"});
@@ -193,4 +193,32 @@ bool Game::playerHasWeapon(int weaponType) {
         }
     }
     return false;
+}
+
+bool Game::canMoveTo(float x, float y) {
+    // Check map boundaries
+    if (x < 0 || x >= Map[0].size() || y < 0 || y >= Map.size()) {
+        return false;
+    }
+
+    int tileX = Map[(int)y][(int)(x + playerSquareSize * (x>playerPosition.first?1:-1))];
+    int tileY = Map[(int)(y + playerSquareSize * (y>playerPosition.second?1:-1))][(int)x];
+
+    // Check for walls
+    if (tileX != 0 || tileY != 0) {
+        return false;
+    }
+
+    // Check for doors
+    int mapX = static_cast<int>(x);
+    int mapY = static_cast<int>(y);
+    auto doorIt = doors.find({mapX, mapY});
+    if (doorIt != doors.end()) {
+        Door& door = doorIt->second;
+        if (door.locked && !playerHasKey(door.keyType)) {
+            return false;
+        }
+    }
+
+    return true;
 }

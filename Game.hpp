@@ -73,6 +73,7 @@ public:
     void acquireWeapon(int weaponType);
     bool playerHasWeapon(int weaponType);
     void loadWeaponsTexture(const char* filePath);
+    bool canMoveTo(float x, float y);
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
