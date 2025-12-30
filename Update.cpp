@@ -79,7 +79,7 @@ void Game::update(float deltaTime)
         // Update canSeePlayer
         bool x = rayCastEnemyToPlayer(*e);
         e->updateCanSeePlayer(x);
-        if(x) std::cout << "Enemy at (" << e->get_position().first << ", " << e->get_position().second << ") can see player.\n";
+        //if(x) std::cout << "Enemy at (" << e->get_position().first << ", " << e->get_position().second << ") can see player.\n";
         int dmg = e->getDamageThisFrame();
         e->clearDamageThisFrame();
         if(x && dmg > 0){
@@ -168,13 +168,34 @@ void Game::update(float deltaTime)
         }
     }
 
-        // ------- Update Textures to be rendered ---------
-        renderOrder.clear();
-        
-        for (int i = 0; i < AllSpriteTextures.size(); ++i) {
-            if (AllSpriteTextures[i].active){
-                renderOrder.push_back(i);
-            }
+    // Update health pack pickup
+    for (const auto& [hpType, pos] : HealthPackPositions) {
+        if(health >= 100 || !AllSpriteTextures[healthPackTypeToSpriteID[hpType]].active)
+            continue;
+        auto [hx, hy] = pos;
+        float healthPackX = hx + 0.5f;
+        float healthPackY = hy + 0.5f;
+        float dx = healthPackX - playerPosition.first;
+        float dy = healthPackY - playerPosition.second;
+        float distanceSq = dx * dx + dy * dy;
+        if (distanceSq < healthPackRadius * healthPackRadius) {
+            int healAmount = healAmounts[hpType];
+            health += healAmount;
+            if(health > 100) health = 100;
+            AudioManager::playSFX("pickup", MIX_MAX_VOLUME / 2);
+            // Remove health pack from map
+            AllSpriteTextures[healthPackTypeToSpriteID[hpType]].active = false;
+            break; // Exit loop since we modified the map
         }
+    }
+
+    // ------- Update Textures to be rendered ---------
+    renderOrder.clear();
+        
+    for (int i = 0; i < AllSpriteTextures.size(); ++i) {
+        if (AllSpriteTextures[i].active){
+                renderOrder.push_back(i);
+        }
+    }
 
 }

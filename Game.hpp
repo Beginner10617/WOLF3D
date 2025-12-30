@@ -74,6 +74,9 @@ public:
     bool playerHasWeapon(int weaponType);
     void loadWeaponsTexture(const char* filePath);
     bool canMoveTo(float x, float y);
+    void loadHealthPackTexture(const char* filePath);
+
+
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -138,7 +141,7 @@ private:
     std::map<int, std::pair<int, int>> HealthPackPositions, healthPackWidthsHeights;
     std::vector<SDLTexturePtr> healthPackTextures;
     float HEALTH_PACK_SIZE = 0.5f, healthPackRadius = 1.9f;
-    std::map<int, int> healthPackTypeToSpriteID;    
+    std::map<int, int> healthPackTypeToSpriteID, healAmounts = {{1,10}, {2,25}};    
     // health packs: 1 = small (+10), 2 = large (+25)
 
     std::vector<Sprite> AllSpriteTextures;

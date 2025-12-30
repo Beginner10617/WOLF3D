@@ -126,7 +126,7 @@ void Game::loadAllTextures(const char* filePath)
         return;
     }
 
-    enum Section { NONE, WALLS, FLOORS, CEILS, KEYS, WEAPONS };
+    enum Section { NONE, WALLS, FLOORS, CEILS, KEYS, WEAPONS, HEALTHPACKS };
     Section currentSection = NONE;
 
     std::string line;
@@ -163,6 +163,10 @@ void Game::loadAllTextures(const char* filePath)
             currentSection = WEAPONS;
             continue;
         }
+        if (low == "[healthpacks]") {
+            currentSection = HEALTHPACKS;
+            continue;
+        }
 
         // If it’s not a section header, it must be a file path
         if (currentSection == WALLS) {
@@ -179,6 +183,9 @@ void Game::loadAllTextures(const char* filePath)
         }
         else if (currentSection == WEAPONS) {
             loadWeaponsTexture(line.c_str());
+        }
+        else if (currentSection == HEALTHPACKS) {
+            loadHealthPackTexture(line.c_str());
         }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
@@ -300,3 +307,23 @@ void Game::loadWeaponsTexture(const char* filePath)
     weaponWidthsHeights[weaponsType] = std::make_pair(width, height);
     weaponsTextures.emplace_back(raw, SDL_DestroyTexture);
 }   
+
+void Game::loadHealthPackTexture(const char* filePath)
+{
+    SDL_Texture* raw = IMG_LoadTexture(renderer.get(), filePath);
+    if (!raw) {
+        std::cerr << "Failed to load health pack texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+    int height = 0, width = 0;
+    if (SDL_QueryTexture(raw, nullptr, nullptr, &width, &height) != 0) {
+        std::cerr << "Failed to query texture: "
+                  << SDL_GetError() << "\n";
+        SDL_DestroyTexture(raw);
+        return;
+    }
+    int healthPackType = healthPackTextures.size() + 1;
+    healthPackWidthsHeights[healthPackType] = std::make_pair(width, height);
+    healthPackTextures.emplace_back(raw, SDL_DestroyTexture);
+}

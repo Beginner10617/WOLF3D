@@ -74,13 +74,13 @@ bool Game::rayCastEnemyToPlayer(const Enemy& enemy) {
         if (mapY < 0 || mapY >= (int)Map.size() ||
             mapX < 0 || mapX >= (int)Map[0].size())
         {
-            std::cout << "Ray out of bounds at (" << mapX << ", " << mapY << ")\n";
+        //    std::cout << "Ray out of bounds at (" << mapX << ", " << mapY << ")\n";
             return false;
         }
 
         // Hit wall
         if (Map[mapY][mapX] > 0 && !isDoor(Map[mapY][mapX])){
-            std::cout << "Ray blocked by wall at (" << mapX << ", " << mapY << ")\n";
+        //    std::cout << "Ray blocked by wall at (" << mapX << ", " << mapY << ")\n";
             return false;
         }
         else if (isDoor(Map[mapY][mapX])) {
@@ -88,11 +88,11 @@ bool Game::rayCastEnemyToPlayer(const Enemy& enemy) {
             if (doorIt != doors.end()) {
                 Door& door = doorIt->second;
                 if (door.openAmount < 1.0f){
-                    std::cout << "Ray blocked by closed door at (" << mapX << ", " << mapY << ")\n";
+                //    std::cout << "Ray blocked by closed door at (" << mapX << ", " << mapY << ")\n";
                     return false;
                 }
             } else {
-                std::cout << "Ray blocked by unknown door at (" << mapX << ", " << mapY << ")\n";
+                //std::cout << "Ray blocked by unknown door at (" << mapX << ", " << mapY << ")\n";
                 return false;
             }
         }

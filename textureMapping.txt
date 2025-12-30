@@ -21,3 +21,7 @@ Textures/Collectibles/Key3.png
 Textures/Collectibles/0knife.png
 Textures/Collectibles/0pist.png
 Textures/Collectibles/0rifle.png
+
+[Healthpacks]
+Textures/Collectibles/0Health-1.png
+Textures/Collectibles/0Health-2.png
