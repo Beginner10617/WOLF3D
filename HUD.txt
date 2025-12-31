@@ -18,3 +18,6 @@ Textures/WeaponUI/rifle-1.png
 Textures/WeaponUI/rifle-2.png
 Textures/WeaponUI/rifle-3.png
 Textures/WeaponUI/rifle-4.png
+
+[Font]
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ:?,-./!%'() Textures/Font/charset.png

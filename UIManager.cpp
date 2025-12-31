@@ -1,5 +1,6 @@
 #include "UIManager.hpp"
 #include <fstream>
+#include <sstream>
 // ---- Static member definitions ----
 
 WeaponType UIManager::currentWeapon = WeaponType::None;
@@ -19,6 +20,8 @@ std::map<WeaponType, UIAnimation> UIManager::weaponAnimations = {
     { WeaponType::Rifle,  UIAnimation{} }
 };
 
+BitmapFont UIManager::font;
+
 static const char* weaponTypeToString(WeaponType w)
 {
     switch (w) {
@@ -37,7 +40,7 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
         return;
     }
 
-    enum Section { NONE, KNIFE, PISTOL, RIFLE};
+    enum Section { NONE, KNIFE, PISTOL, RIFLE, FONT};
     Section currentSection = NONE;
 
     std::string line;
@@ -66,6 +69,10 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
             currentSection = RIFLE;
             continue;
         }
+        if (low == "[font]"){
+            currentSection = FONT;
+            continue;
+        }
 
         // If it’s not a section header, it must be a file path
         if (currentSection == KNIFE) {
@@ -76,6 +83,10 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
         }
         else if (currentSection == RIFLE) {
             addTexture(WeaponType::Rifle, line.c_str(), rend);   
+        }
+        else if (currentSection == FONT) {
+            // Load and use only one FONT Everywhere
+            loadFont(line.c_str(), rend);
         }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
@@ -145,20 +156,122 @@ void UIManager::setHealth(int hp){health = hp;}
 void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSize) {
     auto [screenWidth, screenHeight] = screenSize;
     auto& anim = weaponAnimations[currentWeapon];
-    if(anim.frames.empty()){
-        //std::cout << "Animation frames are empty for weapon: "
-        //  << weaponTypeToString(currentWeapon) << "\n";
+    if(!anim.frames.empty()){
+        // Draw Animation frame    
+        int imgSize = anim.height; // square
+        float scale = 0.6f * screenHeight / imgSize; 
+        int scaledSize = static_cast<int>(imgSize * scale);
+        int destX = (screenWidth - scaledSize) / 2;
+        int destY = screenHeight - scaledSize; // bottom
 
+        SDL_Rect srcRect {0, 0, imgSize, imgSize};
+        SDL_Rect destRect {destX, destY, scaledSize, scaledSize};
+
+        SDL_RenderCopy(&rend, anim.frames[currentFrame].get(), &srcRect, &destRect);
+    }
+    // Render UI text
+    renderText(rend, "HELLO", 0, 0, 1, SDL_Color{255, 0, 0, 255});
+}
+
+
+void UIManager::renderText(
+    SDL_Renderer& renderer,
+    const std::string& text,
+    int x, int y,
+    int scale,
+    SDL_Color color
+) {
+    // Apply color modulation ONCE
+    SDL_SetTextureColorMod(
+        font.texture.get(),
+        color.r, color.g, color.b
+    );
+    SDL_SetTextureAlphaMod(font.texture.get(), color.a);
+
+    int cursorX = x;
+
+    for (char c : text) {
+        int index = getGlyphIndex(c);
+        if (index < 0) {
+            cursorX += font.glyphW * scale;
+            continue;
+        }
+
+        SDL_Rect src {
+            index * font.glyphW,
+            0,
+            font.glyphW,
+            font.glyphH
+        };
+
+        SDL_Rect dst {
+            cursorX,
+            y,
+            font.glyphW * scale,
+            font.glyphH * scale
+        };
+
+        SDL_RenderCopy(&renderer, font.texture.get(), &src, &dst);
+        cursorX += dst.w;
+    }
+
+    // Reset modulation to avoid affecting other draws
+    SDL_SetTextureColorMod(font.texture.get(), 255, 255, 255);
+    SDL_SetTextureAlphaMod(font.texture.get(), 255);
+}
+
+// Font Utils
+
+int UIManager::getGlyphIndex(char c) {
+    c = std::toupper(c);
+    auto pos = UIManager::font.charset.find(c);
+    if (pos == std::string::npos)
+        return -1;
+    return static_cast<int>(pos);
+}
+
+void UIManager::loadFont(const char* charsetAndFilePath, SDL_Renderer& renderer)
+{
+    std::string input = charsetAndFilePath;
+
+    // Split at last space
+    size_t splitPos = input.find_last_of(' ');
+    if (splitPos == std::string::npos) {
+        std::cerr << "Font load error: Invalid format\n";
         return;
     }
-    int imgSize = anim.height; // square
-    float scale = 0.6f * screenHeight / imgSize; 
-    int scaledSize = static_cast<int>(imgSize * scale);
-    int destX = (screenWidth - scaledSize) / 2;
-    int destY = screenHeight - scaledSize; // bottom
 
-    SDL_Rect srcRect {0, 0, imgSize, imgSize};
-    SDL_Rect destRect {destX, destY, scaledSize, scaledSize};
+    std::string charset = input.substr(0, splitPos);
+    std::string filePath = input.substr(splitPos + 1);
 
-    SDL_RenderCopy(&rend, anim.frames[currentFrame].get(), &srcRect, &destRect);
+    SDL_Texture* raw = IMG_LoadTexture(&renderer, filePath.c_str());
+    if (!raw) {
+        std::cerr << "Failed to load font texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+
+    int texW, texH;
+    SDL_QueryTexture(raw, nullptr, nullptr, &texW, &texH);
+
+    int glyphCount = static_cast<int>(charset.size());
+    if (glyphCount == 0) {
+        std::cerr << "Font load error: Empty charset\n";
+        SDL_DestroyTexture(raw);
+        return;
+    }
+
+    // Assuming a single row font sheet
+    int glyphW = texW / glyphCount;
+    int glyphH = texH;
+
+    font.texture = SDLTexturePtr(raw, SDL_DestroyTexture);
+    font.glyphW  = glyphW;
+    font.glyphH  = glyphH;
+    font.charset = charset;
+
+    std::cout << "Loaded bitmap font: "
+              << glyphCount << " glyphs ("
+              << glyphW << "x" << glyphH << ")\n";
 }
+

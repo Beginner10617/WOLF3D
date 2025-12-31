@@ -17,11 +17,29 @@ struct UIAnimation {
     int height = 64;
 };
 
+struct BitmapFont {
+    SDLTexturePtr texture;
+    int glyphW;
+    int glyphH;
+    std::string charset;
+};
+
 class UIManager {
 public:
     static void loadTextures(const char* filePath, SDL_Renderer& r);
+    static void loadFont(const char* charsetAndFilePath, SDL_Renderer& renderer);
+    static int getGlyphIndex(char c);
+
     static void update(float deltaTime);
     static void renderHUD(SDL_Renderer& rend, const std::pair<int, int>& WH);
+    static void renderText(
+        SDL_Renderer& renderer,
+        const std::string& text,
+        int x, int y,
+        int scale,
+        SDL_Color color
+    );
+
     static void renderPauseMenu(SDL_Renderer& renderer, const std::pair<int, int>& WH);
 
     static void setWeapon(WeaponType weapon);
@@ -41,4 +59,6 @@ private:
     static int currentFrame;
     static bool animating;
     static const int IDLE_FRAME = 1;
+
+    static BitmapFont font;
 };
