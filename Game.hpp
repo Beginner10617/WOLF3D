@@ -77,6 +77,10 @@ public:
     void spawnRandomAmmoPack(std::pair<int, int>);
     void addDecorationTexture(char x, const char* filePath);
     void loadDecorationTextures(const char* filePath);
+
+    SDL_Renderer& getRenderer();
+    const SDL_Renderer& getRenderer() const;
+
 private:
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
@@ -122,9 +126,9 @@ private:
         std::string soundName;
     };
     std::map<int, weapon> weapons;
-    int currentWeapon;
+    int currentWeapon = 0;
     float fireCooldown = 0.2f;
-    bool shotThisFrame = false, hasShot = false;
+    bool shotThisFrame = false, hasShot = false, weaponChangedThisFrame = false;
     bool rayCastEnemyToPlayer(const Enemy& enemy, bool isPlayer);
 
     std::map<int, std::pair<int, int>> keysPositions, keyWidthsHeights;

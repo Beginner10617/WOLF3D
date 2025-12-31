@@ -104,3 +104,11 @@ bool Game::canMoveTo(float x, float y) {
 
     return true;
 }
+
+SDL_Renderer& Game::getRenderer() {
+    return *renderer;
+}
+
+const SDL_Renderer& Game::getRenderer() const {
+    return *renderer;
+}

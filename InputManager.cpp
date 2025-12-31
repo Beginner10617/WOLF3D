@@ -104,16 +104,22 @@ void Game::handleEvents()
 
     // Weapon switching (number keys)
     if(keystate[SDL_SCANCODE_1]){
-        if(playerHasWeapon(1))
+        if(playerHasWeapon(1)){
             currentWeapon = 1;
+            weaponChangedThisFrame = true;
+        }
     }
     if(keystate[SDL_SCANCODE_2]){
-        if(playerHasWeapon(2))
+        if(playerHasWeapon(2)){
             currentWeapon = 2;
+            weaponChangedThisFrame = true;
+        }
     }
     if(keystate[SDL_SCANCODE_3]){
-        if(playerHasWeapon(3))
+        if(playerHasWeapon(3)){
             currentWeapon = 3;
+            weaponChangedThisFrame = true;
+        }
     }
 
 }

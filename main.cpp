@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "UIManager.hpp"
 #include <iostream>
 Game* game = nullptr;
 
@@ -15,6 +16,7 @@ int main(int argc, char* argv[]) {
     game->loadEnemyTextures("enemyFrames.txt");
     game->loadDecorationTextures("Decorations.txt");
     AudioManager::loadAllAudios("audioConfig.txt");
+    UIManager::loadTextures("HUD.txt", game->getRenderer());
     game->loadMapDataFromFile("testMap.txt");
 
     // Place Player

@@ -19,6 +19,17 @@ std::map<WeaponType, UIAnimation> UIManager::weaponAnimations = {
     { WeaponType::Rifle,  UIAnimation{} }
 };
 
+static const char* weaponTypeToString(WeaponType w)
+{
+    switch (w) {
+        case WeaponType::Knife:  return "Knife";
+        case WeaponType::Pistol: return "Pistol";
+        case WeaponType::Rifle:  return "Rifle";
+        case WeaponType::None:   return "None";
+        default:                 return "Unknown";
+    }
+}
+
 void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
     std::ifstream file(filePath);
     if (!file.is_open()) {
@@ -83,22 +94,38 @@ void UIManager::addTexture(WeaponType weapon, const char* filePath, SDL_Renderer
     weaponAnimations[weapon].frames.emplace_back(raw, SDL_DestroyTexture);
 }
 
-void UIManager::update(float deltaTime){
-    if(animating)
-        weaponAnimTimer += deltaTime;
-    if(animating && weaponAnimTimer > frameDuration){
-        currentFrame += 1; weaponAnimTimer = 0.0f;
+void UIManager::update(float deltaTime)
+{
+    if (!animating) return;
+
+    auto& anim = weaponAnimations[currentWeapon];
+    if (anim.frames.empty()) return;
+
+    weaponAnimTimer += deltaTime;
+    
+    while (weaponAnimTimer >= frameDuration)
+    {
+        weaponAnimTimer -= frameDuration;
+        currentFrame++;
+
+        // Stop exactly at idle frame
+        if (currentFrame >= anim.frames.size())
+        {
+            currentFrame = IDLE_FRAME;
+            animating = false;
+            break;
+        }
     }
-    if(animating && currentFrame >= weaponAnimations[currentWeapon].frames.size())
-        currentFrame = 0;
-    if(animating && currentFrame == IDLE_FRAME)
-        animating = false;
 }
 
-void UIManager::animateOneShot(){
+void UIManager::animateOneShot()
+{
+    auto& anim = weaponAnimations[currentWeapon];
+    if (anim.frames.size() <= IDLE_FRAME + 1)
+        return;
+
     currentFrame = IDLE_FRAME + 1;
-    if(currentFrame == weaponAnimations[currentWeapon].frames.size())
-        currentFrame = 0;
+    weaponAnimTimer = 0.0f;
     animating = true;
 }
 
@@ -118,8 +145,12 @@ void UIManager::setHealth(int hp){health = hp;}
 void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSize) {
     auto [screenWidth, screenHeight] = screenSize;
     auto& anim = weaponAnimations[currentWeapon];
-    if(anim.frames.empty()) return;
+    if(anim.frames.empty()){
+        //std::cout << "Animation frames are empty for weapon: "
+        //  << weaponTypeToString(currentWeapon) << "\n";
 
+        return;
+    }
     int imgSize = anim.height; // square
     float scale = 0.6f * screenHeight / imgSize; 
     int scaledSize = static_cast<int>(imgSize * scale);

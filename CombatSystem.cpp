@@ -8,6 +8,8 @@ bool Game::canShootEnemy(float dist){
     float t = (dist - MIN_DIST) / (MAX_DIST - MIN_DIST);
 
     // Quadratic falloff (feels very Wolf-like)
+    if(weapons.find(currentWeapon) == weapons.end())
+        return false;
     int errorDivisor = ((int) (weapons[currentWeapon].accuracy - 1) * (1.0f - t * t)) + 1;
     return (rand() % errorDivisor) != 0;
 }
@@ -126,6 +128,7 @@ void Game::acquireWeapon(int weaponType) {
         std::cerr << "Invalid weapon type: " << weaponType << "\n";
         return;
     }
+    weaponChangedThisFrame = true;
     switch(weaponType){
         case 1:
             weapons[1] = weapon({1, 100, 0, 2.0f, 0.1f, 0.0f, "knife"});

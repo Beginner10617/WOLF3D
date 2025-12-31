@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "UIManager.hpp"
 
 void Game::render()
 {
@@ -309,5 +310,10 @@ void Game::render()
             ScreenHeightWidth.first/2, 0,
             ScreenHeightWidth.first/2, ScreenHeightWidth.second
             );
+
+    UIManager::renderHUD(
+        getRenderer(),
+        ScreenHeightWidth
+    );
     SDL_RenderPresent(renderer.get()); 
 }

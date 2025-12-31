@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "UIManager.hpp"
 
 void Game::update(float deltaTime)
 {
@@ -230,5 +231,25 @@ void Game::update(float deltaTime)
                 renderOrder.push_back(i);
         }
     }
+
+    if(currentWeapon == 1 && weaponChangedThisFrame){
+        UIManager::setWeapon(WeaponType::Knife);
+        weaponChangedThisFrame = false;
+    }
+    else if(currentWeapon == 2 && weaponChangedThisFrame){
+        UIManager::setAmmo('P', weapons[currentWeapon].ammo);
+        UIManager::setWeapon(WeaponType::Pistol);
+        weaponChangedThisFrame = false;
+    }
+    else if(currentWeapon == 3 && weaponChangedThisFrame){
+        UIManager::setAmmo('S', weapons[currentWeapon].ammo);
+        UIManager::setWeapon(WeaponType::Rifle);
+        weaponChangedThisFrame = false;
+    }
+    if(shotThisFrame){
+        UIManager::animateOneShot();
+    }
+    UIManager::setHealth(health);
+    UIManager::update(deltaTime);
 
 }

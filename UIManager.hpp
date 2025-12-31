@@ -36,7 +36,7 @@ private:
     static int health;
 
     static std::map<WeaponType, UIAnimation> weaponAnimations;
-    static constexpr float frameDuration = 0.2f;
+    static constexpr float frameDuration = 0.1f;
     static float weaponAnimTimer;
     static int currentFrame;
     static bool animating;
