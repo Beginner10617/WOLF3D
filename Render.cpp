@@ -7,11 +7,10 @@ void Game::render()
     std::vector<float> zBuffer(ScreenHeightWidth.first);
 
     // Draw floor
-    if (floorTextures.size() == 0) {
-        SDL_SetRenderDrawColor(renderer.get(), 100, 100, 100, 255);
-        SDL_Rect floorRect = {0, ScreenHeightWidth.second / 2, ScreenHeightWidth.first, ScreenHeightWidth.second / 2};
-        SDL_RenderFillRect(renderer.get(), &floorRect);
-    }
+    SDL_SetRenderDrawColor(renderer.get(), 100, 100, 100, 255);
+    SDL_Rect floorRect = {0, ScreenHeightWidth.second / 2, ScreenHeightWidth.first, ScreenHeightWidth.second / 2};
+    SDL_RenderFillRect(renderer.get(), &floorRect);
+    
     // Raycasting for walls
     int raysCount = ScreenHeightWidth.first;
     
@@ -187,54 +186,7 @@ void Game::render()
             SDL_RenderCopy(renderer.get(), wallTextures[texId].get(), &srcRect, &destRect);
         }
 
-        // Draw floor texture
-        if (floorTextures.size() > 0) {
-            int floorScreenStart = drawEnd; // start drawing floor below the wall
-            imgHeight = floorTextureHeights[0];
-            imgWidth = floorTextureWidths[0];
-            for (int y = drawEnd; y < ScreenHeightWidth.second; y++) {
-                float rowDist = playerHeight / ((float)y / ScreenHeightWidth.second - 0.5f);
-
-                // Interpolate floor coordinates
-                float floorX = playerPosition.first + rowDist * rayDirX;
-                float floorY = playerPosition.second + rowDist * rayDirY;
-
-                int texX = ((int)(floorX * imgWidth)) % imgWidth;
-                int texY = ((int)(floorY * imgHeight)) % imgHeight;
-
-                texX = (texX % imgWidth + imgWidth) % imgWidth;
-                texY = (texY % imgHeight + imgHeight) % imgHeight;
-
-
-                SDL_Rect srcRect  = { texX, texY, 1, 1 };
-                SDL_Rect destRect = { ray, y, 1, 1 };
-                SDL_RenderCopy(renderer.get(), floorTextures[0].get(), &srcRect, &destRect);
-            }
-        }
         
-        // Draw ceiling
-        for(int y = 0; y < drawStart; y++) {
-            if(ceilingTextures.size() > 0) {
-                int imgWidth = ceilingTextureWidths[0];
-                int imgHeight = ceilingTextureHeights[0];
-
-                float rowDist = playerHeight / (0.5f - (float)y / ScreenHeightWidth.second);
-
-                // Interpolate ceiling coordinates
-                float ceilX = playerPosition.first + rowDist * rayDirX;
-                float ceilY = playerPosition.second + rowDist * rayDirY;
-
-                int texX = ((int)(ceilX * imgWidth)) % imgWidth;
-                int texY = ((int)(ceilY * imgHeight)) % imgHeight;
-
-                texX = (texX % imgWidth + imgWidth) % imgWidth;
-                texY = (texY % imgHeight + imgHeight) % imgHeight;
-
-                SDL_Rect srcRect  = { texX, texY, 1, 1 };
-                SDL_Rect destRect = { ray, y, 1, 1 };
-                SDL_RenderCopy(renderer.get(), ceilingTextures[0].get(), &srcRect, &destRect);
-            } 
-        }
     }
     // Rendering Sprites
     // Sort sprites by distance from player (far to near)

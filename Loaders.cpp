@@ -171,7 +171,7 @@ void Game::loadAllTextures(const char* filePath)
         return;
     }
 
-    enum Section { NONE, WALLS, FLOORS, CEILS, KEYS, WEAPONS, HEALTHPACKS, AMMOPACKS };
+    enum Section { NONE, WALLS, KEYS, WEAPONS, HEALTHPACKS, AMMOPACKS };
     Section currentSection = NONE;
 
     std::string line;
@@ -190,14 +190,6 @@ void Game::loadAllTextures(const char* filePath)
         // Detect section headers case-insensitively
         if (low == "[walls]") {
             currentSection = WALLS;
-            continue;
-        }
-        if (low == "[floors]") {
-            currentSection = FLOORS;
-            continue;
-        }
-        if (low == "[ceils]" || low == "[ceil]" || low == "[ceilings]") {
-            currentSection = CEILS;
             continue;
         }
         if (low == "[keys]") {
@@ -220,12 +212,6 @@ void Game::loadAllTextures(const char* filePath)
         // If it’s not a section header, it must be a file path
         if (currentSection == WALLS) {
             addWallTexture(line.c_str());
-        }
-        else if (currentSection == FLOORS) {
-            addFloorTexture(line.c_str());
-        }
-        else if (currentSection == CEILS) {
-            addCeilingTexture(line.c_str());
         }
         else if (currentSection == KEYS) {
             loadKeysTexture(line.c_str());

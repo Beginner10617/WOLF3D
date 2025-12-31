@@ -43,8 +43,6 @@ void Game::clean()
 {
     enemyTextures.clear();
     wallTextures.clear();
-    floorTextures.clear();
-    ceilingTextures.clear();
     doors.clear();
     enemies.clear();
 

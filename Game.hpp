@@ -58,8 +58,6 @@ public:
     void placePlayerAt(int x, int y, float angle);
     void printPlayerPosition();
     void addWallTexture(const char* filePath);
-    void addFloorTexture(const char* filePath);
-    void addCeilingTexture(const char* filePath);
     bool isDoor(int tileValue);
     bool playerHasKey(int keyType);
     void loadAllTextures(const char* filePath);
@@ -92,12 +90,10 @@ private:
     std::pair<float, float> playerPosition;
     std::pair<int, int> ScreenHeightWidth;
     std::pair<double, double> playerMoveDirection = {0.0, 0.0};
-    std::vector<std::vector<int>> Map, floorMap, ceilingMap;
+    std::vector<std::vector<int>> Map;
     std::vector<SDLTexturePtr> wallTextures;
-    std::vector<SDLTexturePtr> floorTextures;
-    std::vector<SDLTexturePtr> ceilingTextures;
-    std::vector<int> wallTextureWidths, floorTextureWidths, ceilingTextureWidths;
-    std::vector<int> wallTextureHeights, floorTextureHeights, ceilingTextureHeights;
+    std::vector<int> wallTextureWidths;
+    std::vector<int> wallTextureHeights;
     struct Door {
         float openAmount;   // 0 = closed, 1 = fully open
         bool opening;       // opening animation active
