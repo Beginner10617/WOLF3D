@@ -21,6 +21,7 @@ void Game::init(const char *title, int xpos, int ypos, int width, int height, bo
             }
             isRunning = true;
         }
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
     } else {
         isRunning = false;
     }

@@ -3,7 +3,10 @@
 // ---- Static member definitions ----
 
 WeaponType UIManager::currentWeapon = WeaponType::None;
-int UIManager::ammo = 0;
+std::map<WeaponType, int> UIManager::ammo = {
+    { WeaponType::Pistol, 0 },
+    { WeaponType::Rifle,  0 }
+};
 int UIManager::health = 100;
 
 float UIManager::weaponAnimTimer = 0.0f;
@@ -16,7 +19,7 @@ std::map<WeaponType, UIAnimation> UIManager::weaponAnimations = {
     { WeaponType::Rifle,  UIAnimation{} }
 };
 
-void UIManager::loadTextures(const char* filePath){
+void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
     std::ifstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open texture list file: " << filePath << "\n";
@@ -55,16 +58,76 @@ void UIManager::loadTextures(const char* filePath){
 
         // If it’s not a section header, it must be a file path
         if (currentSection == KNIFE) {
-            
+            addTexture(WeaponType::Knife, line.c_str(), rend);
         }
         else if (currentSection == PISTOL) {
-            
+            addTexture(WeaponType::Pistol, line.c_str(), rend);
         }
         else if (currentSection == RIFLE) {
-            
+            addTexture(WeaponType::Rifle, line.c_str(), rend);   
         }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
         }
     }
+}
+
+void UIManager::addTexture(WeaponType weapon, const char* filePath, SDL_Renderer& renderer){
+    SDL_Texture* raw = IMG_LoadTexture(&renderer, filePath);
+    if (!raw) {
+        std::cerr << "Failed to load Weapon HUD texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+
+    weaponAnimations[weapon].frames.emplace_back(raw, SDL_DestroyTexture);
+}
+
+void UIManager::update(float deltaTime){
+    if(animating)
+        weaponAnimTimer += deltaTime;
+    if(animating && weaponAnimTimer > frameDuration){
+        currentFrame += 1; weaponAnimTimer = 0.0f;
+    }
+    if(animating && currentFrame >= weaponAnimations[currentWeapon].frames.size())
+        currentFrame = 0;
+    if(animating && currentFrame == IDLE_FRAME)
+        animating = false;
+}
+
+void UIManager::animateOneShot(){
+    currentFrame = IDLE_FRAME + 1;
+    if(currentFrame == weaponAnimations[currentWeapon].frames.size())
+        currentFrame = 0;
+    animating = true;
+}
+
+void UIManager::setWeapon(WeaponType weapon){
+    currentWeapon = weapon;
+    currentFrame = IDLE_FRAME;
+    animating = false;
+}
+void UIManager::setAmmo(const char weaponChar, int num){
+    if(weaponChar == 'P')
+        ammo[WeaponType::Pistol] = num;
+    else if(weaponChar == 'S')
+        ammo[WeaponType::Rifle] = num;
+}
+void UIManager::setHealth(int hp){health = hp;}
+
+void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSize) {
+    auto [screenWidth, screenHeight] = screenSize;
+    auto& anim = weaponAnimations[currentWeapon];
+    if(anim.frames.empty()) return;
+
+    int imgSize = anim.height; // square
+    float scale = 0.6f * screenHeight / imgSize; 
+    int scaledSize = static_cast<int>(imgSize * scale);
+    int destX = (screenWidth - scaledSize) / 2;
+    int destY = screenHeight - scaledSize; // bottom
+
+    SDL_Rect srcRect {0, 0, imgSize, imgSize};
+    SDL_Rect destRect {destX, destY, scaledSize, scaledSize};
+
+    SDL_RenderCopy(&rend, anim.frames[currentFrame].get(), &srcRect, &destRect);
 }

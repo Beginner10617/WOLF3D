@@ -131,10 +131,10 @@ void Game::acquireWeapon(int weaponType) {
             weapons[1] = weapon({1, 100, 0, 2.0f, 0.1f, 0.0f, "knife"});
             break;
         case 2:
-            weapons[2] = weapon({2, 4, 30, 70.0f, 0.2f, 16.0f, "pistol"});
+            weapons[2] = weapon({2, 4, 30, 70.0f, 0.3f, 16.0f, "pistol"});
             break;
         case 3:
-            weapons[3] = weapon({3, 6, 50, 90.0f, 0.5f, 24.0f, "rifle"});
+            weapons[3] = weapon({3, 6, 50, 90.0f, 0.7f, 24.0f, "rifle"});
             break;
         default:
             std::cerr << "Unhandled weapon type: " << weaponType << "\n";
