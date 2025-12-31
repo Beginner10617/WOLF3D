@@ -154,6 +154,12 @@ void UIManager::setAmmo(const char weaponChar, int num){
 void UIManager::setHealth(int hp){health = hp;}
 
 void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSize) {
+    renderWeapon(rend, screenSize, 50);
+    
+    renderText(rend, "HELLO", 0, 0, 1, SDL_Color{255, 0, 0, 255});
+}
+
+void UIManager::renderWeapon(SDL_Renderer& rend, const std::pair<int,int>& screenSize, int yOffset){
     auto [screenWidth, screenHeight] = screenSize;
     auto& anim = weaponAnimations[currentWeapon];
     if(!anim.frames.empty()){
@@ -165,14 +171,11 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
         int destY = screenHeight - scaledSize; // bottom
 
         SDL_Rect srcRect {0, 0, imgSize, imgSize};
-        SDL_Rect destRect {destX, destY, scaledSize, scaledSize};
+        SDL_Rect destRect {destX, destY - yOffset, scaledSize, scaledSize - yOffset};
 
         SDL_RenderCopy(&rend, anim.frames[currentFrame].get(), &srcRect, &destRect);
     }
-    // Render UI text
-    renderText(rend, "HELLO", 0, 0, 1, SDL_Color{255, 0, 0, 255});
 }
-
 
 void UIManager::renderText(
     SDL_Renderer& renderer,

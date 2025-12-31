@@ -31,7 +31,16 @@ public:
     static int getGlyphIndex(char c);
 
     static void update(float deltaTime);
-    static void renderHUD(SDL_Renderer& rend, const std::pair<int, int>& WH);
+    
+    static void renderHUD(
+        SDL_Renderer& rend, 
+        const std::pair<int, int>& WH);
+
+    static void renderWeapon(
+        SDL_Renderer& rend, 
+        const std::pair<int,int>& screenSize, 
+        int yOffset);
+
     static void renderText(
         SDL_Renderer& renderer,
         const std::string& text,
