@@ -74,7 +74,10 @@ public:
     static void addTexture(WeaponType weapon, const char* filePath, SDL_Renderer& rend);
 
     static void addPanelTexture(WeaponType weapon, const char* filePath, SDL_Renderer& rend);
-
+    static void renderPanelWeaponImage(
+        SDL_Renderer& rend,
+        const std::pair<int, int>& screenWH
+    );
 private:
     static WeaponType currentWeapon;
     static std::map<WeaponType, int> ammo;
@@ -94,4 +97,5 @@ private:
     static std::map<HUDSections, int> panelSectionWidths;
 
     static std::map<WeaponType, SDLTexturePtr> panelWeaponImage;
+    static std::map<WeaponType, std::pair<int, int>> panelWeaponImageWH;
 };

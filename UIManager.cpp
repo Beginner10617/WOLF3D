@@ -36,6 +36,7 @@ std::map<HUDSections, int> UIManager::panelSectionWidths = {
 };
 
 std::map<WeaponType, SDLTexturePtr> UIManager::panelWeaponImage={};
+std::map<WeaponType, std::pair<int, int>> UIManager::panelWeaponImageWH={};
 
 static const char* weaponTypeToString(WeaponType w)
 {
@@ -182,7 +183,7 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
     renderWeapon(rend, screenSize, panelHeight);
 
     // Rendering Datas on Panel
-    
+    renderPanelWeaponImage(rend, screenSize);
 
 }
 
@@ -250,7 +251,63 @@ void UIManager::renderText(
     SDL_SetTextureAlphaMod(font.texture.get(), 255);
 }
 
-// Font Utils
+void UIManager::renderPanelWeaponImage(
+    SDL_Renderer& rend,
+    const std::pair<int, int>& screenWH
+){
+    int x = 0;
+    int j = static_cast<int>(HUDSections::WEAPON);
+    int i = 0;
+
+    // Accumulate X offset for WEAPON section
+    while (i < j) {
+        x += panelSectionWidths[static_cast<HUDSections>(i)];
+        i++;
+    }
+
+    // ---------- Panel rect ----------
+    SDL_Rect panelRect {
+        x,
+        screenWH.second - panelHeight,
+        panelSectionWidths[HUDSections::WEAPON],
+        panelHeight
+    };
+    drawFilledRectWithBorder(rend, panelRect, panelFillColor, panelBorderColor, panelBorderThickness);
+    panelRect.x += 2 * panelBorderThickness;
+    panelRect.w -= 4 * panelBorderThickness;
+
+    // ---------- Fetch texture ----------
+    auto texIt = panelWeaponImage.find(currentWeapon);
+    if (texIt == panelWeaponImage.end())
+        return;
+
+    SDL_Texture* texture = texIt->second.get();
+
+    // ---------- Fetch image size ----------
+    auto whIt = panelWeaponImageWH.find(currentWeapon);
+    if (whIt == panelWeaponImageWH.end())
+        return;
+
+    int imgW = whIt->second.first;
+    int imgH = whIt->second.second;
+
+    // ---------- Aspect-ratio fit ----------
+    float scaleX = static_cast<float>(panelRect.w) / imgW;
+    float scaleY = static_cast<float>(panelRect.h) / imgH;
+    float scale  = std::min(scaleX, scaleY);
+
+    int drawW = static_cast<int>(imgW * scale);
+    int drawH = static_cast<int>(imgH * scale);
+
+    // ---------- Center inside panel ----------
+    int drawX = panelRect.x + (panelRect.w - drawW) / 2;
+    int drawY = panelRect.y + (panelRect.h - drawH) / 2;
+
+    SDL_Rect srcRect  { 0, 0, imgW, imgH };
+    SDL_Rect destRect { drawX, drawY, drawW, drawH };
+
+    SDL_RenderCopy(&rend, texture, &srcRect, &destRect);
+}
 
 int UIManager::getGlyphIndex(char c) {
     c = std::toupper(c);
@@ -381,4 +438,12 @@ void UIManager::addPanelTexture(WeaponType weapon, const char* filePath, SDL_Ren
         weapon,
         SDLTexturePtr(raw, SDL_DestroyTexture)
     );
+    int width = 0, height = 0;
+    if (SDL_QueryTexture(raw, nullptr, nullptr, &width, &height) != 0) {
+        std::cerr << "Failed to query texture: "
+                  << SDL_GetError() << "\n";
+        return;
+    }
+
+    panelWeaponImageWH[weapon] = std::make_pair(width, height);
 }
