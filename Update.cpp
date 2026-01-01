@@ -34,7 +34,7 @@ void Game::update(float deltaTime)
             (int)(newX + playerSquareSize/2 * (newX > playerPosition.first ?1:-1)),
             (int)playerPosition.second
                 }]
-            .openAmount > 0.5f))
+            .openAmount == 1.0f))
     {
         if (!collidesWithEnemy(newX, playerPosition.second)) {
             playerPosition.first = newX;
@@ -47,7 +47,7 @@ void Game::update(float deltaTime)
             (int)playerPosition.first,
             (int)(newY + playerSquareSize/2 * (newY > playerPosition.second ?1:-1)),
                 }]
-            .openAmount > 0.5f))
+            .openAmount == 1.0f))
     {
         if (!collidesWithEnemy(playerPosition.first, newY)) {
             playerPosition.second = newY;
