@@ -94,7 +94,7 @@ int Game::canMoveTo(float x, float y) {
     // Check for doors
     int mapX = static_cast<int>(x);
     int mapY = static_cast<int>(y);
-    std::cout<<"Want to move to tile ("<<mapX<<", "<<mapY<<")\n";
+    //std::cout<<"Want to move to tile ("<<mapX<<", "<<mapY<<")\n";
     auto doorIt = doors.find({mapX, mapY});
     if (doorIt != doors.end()) {
         Door& door = doorIt->second;

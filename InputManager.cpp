@@ -16,7 +16,7 @@ void Game::handleEvents()
             SDL_SetRelativeMouseMode(SDL_TRUE);   // capture mouse
             //std::cout << "Mouse captured\n";
             if(!hasShot && weapons.size() > 0){
-                if(weapons[currentWeapon].ammo == 0 && weapons[currentWeapon].multiplier > 1){
+                if(weapons[currentWeapon].ammo == 0 && currentWeapon > 1){
                     std::cout << "Out of ammo!\n";
                 }
                 else{
@@ -24,7 +24,7 @@ void Game::handleEvents()
                     hasShot = true;
                     fireCooldown = 0.0f;
                     std::cout << "Fired weapon " << currentWeapon << "\n";
-                    if(weapons[currentWeapon].multiplier > 1){
+                    if(currentWeapon > 1){
                         weapons[currentWeapon].ammo--;
                     }
                     AudioManager::playSFX(weapons[currentWeapon].soundName, MIX_MAX_VOLUME);

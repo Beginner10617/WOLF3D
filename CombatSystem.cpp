@@ -131,7 +131,7 @@ void Game::acquireWeapon(int weaponType) {
     weaponChangedThisFrame = true;
     switch(weaponType){
         case 1:
-            weapons[1] = weapon({1, 100, 0, 0, 2.0f, 0.1f, 0.0f, "knife"});
+            weapons[1] = weapon({2, 100, 0, 0, 2.0f, 0.1f, 0.0f, "knife"});
             break;
         case 2:
             weapons[2] = weapon({2, 4, 30, 60, 70.0f, 0.3f, 16.0f, "pistol"});
