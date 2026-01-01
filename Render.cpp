@@ -243,6 +243,7 @@ void Game::render()
         if(sprite.isEnemy && shotThisFrame && spriteDist < weapons[currentWeapon].range
             && drawStartX + spriteWidth * (1-enemyBoundBox)/2 < centreX
             && drawEndX - spriteWidth * (1-enemyBoundBox)/2 > centreX
+            && zBuffer[centreX] > spriteDist
         ){
             enemyShotIndex = enemySpriteIDToindex.at(sprite.spriteID);
             std::cout << drawStartX << ", " << drawEndX << " " << centreX << "\n";

@@ -78,31 +78,32 @@ void Game::acquireKey(int keyType) {
     }
 }
 
-bool Game::canMoveTo(float x, float y) {
+int Game::canMoveTo(float x, float y) {
     // Check map boundaries
     if (x < 0 || x >= Map[0].size() || y < 0 || y >= Map.size()) {
-        return false;
+        return 0;
     }
 
-    int tileX = Map[(int)y][(int)x];
-    int tileY = Map[(int)y][(int)x];
-    // Check for walls
-    if (tileX != 0 || tileY != 0) {
-        return false;
-    }
+    int val = Map[(int)y][(int)x];
+    if(val == 0)
+        return 1;
+
+    if(!isDoor(val))
+        return 0;
 
     // Check for doors
     int mapX = static_cast<int>(x);
     int mapY = static_cast<int>(y);
+    std::cout<<"Want to move to tile ("<<mapX<<", "<<mapY<<")\n";
     auto doorIt = doors.find({mapX, mapY});
     if (doorIt != doors.end()) {
         Door& door = doorIt->second;
         if (door.openAmount < 1.0f) {
-            return false;
+            return -1;
         }
     }
 
-    return true;
+    return 1;
 }
 
 SDL_Renderer& Game::getRenderer() {

@@ -69,14 +69,24 @@ void Game::update(float deltaTime)
     // Update enemies
     for(const std::unique_ptr<Enemy>& e : enemies){
         auto epos = e->askGameToMove(deltaTime);
-        if(canMoveTo(epos.first, epos.second)){
+        int hasWall = canMoveTo(epos.first, epos.second);
+        if(hasWall > 0){
             e->allowWalkNextFrame();
         }
         else{
-            e->cancelWalkThisFrame();
+            e->cancelWalkThisFrame(hasWall);
         }
         e->_process(deltaTime, playerPosition, playerAngle);
-
+        if(e->get_wantToOpenDoor()){
+            auto coor = e->nearbyDoor();
+            if(doors.count(coor) && !doors[coor].locked){
+                doors[coor].opening = true;
+            }
+            else{
+                std::cerr<<"No door at ("<<coor.first<<", "<<coor.second<<")\n";
+            }
+            e->reset_wantToOpenThisFrame();
+        }
         // Update canSeePlayer
         bool x = rayCastEnemyToPlayer(*e, false);
         e->updateCanSeePlayer(x);

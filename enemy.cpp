@@ -82,11 +82,16 @@ void Enemy::_process(float deltaTime, const std::pair<float, float>& playerPosit
             setAnimState(ENEMY_IDLE, false);
             stateLocked = false;
         } else {
-            if (canWalkThisFrame) {
+            if (canWalkThisFrame > 0) {
                 position.first  += step * std::cos(angle);
                 position.second -= step * std::sin(angle);
             }
             else{
+                if(canWalkThisFrame < 0 && canOpenDoor()){
+                    int mapX = static_cast<int>(destinationOfWalk.first);
+                    int mapY = static_cast<int>(destinationOfWalk.second);
+                    openDoorAt(std::make_pair(mapX, mapY));
+                }
                 destinationOfWalk = position; // cancel walk
                 walking = false;
                 setAnimState(ENEMY_IDLE, false);
@@ -331,4 +336,22 @@ int Enemy::rollEnemyDamage() {
 void Enemy::alert(){
     alerted = true;
     std::cout << "Enemy alerted!\n";
+}
+void Enemy::cancelWalkThisFrame(bool door){
+    if(door)
+        canWalkThisFrame = -1;
+    else 
+        canWalkThisFrame = 0;
+}
+bool Enemy::canOpenDoor()
+{
+    return (rand() % doorOpenChanceDivisor == 0);
+}
+void Enemy::openDoorAt(std::pair<int, int> coor){
+    doorCoord = coor;
+    wantToOpenThisFrame = true;
+    std::cout<<"Enemy opening door at ("<<coor.first<<", "<<coor.second<<")\n";
+}
+std::pair<int, int> Enemy::nearbyDoor(){
+    return doorCoord;
 }

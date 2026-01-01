@@ -30,7 +30,7 @@ class Enemy {
     bool justTookDamage = false;
     bool isDead = false;
     bool stateLocked = false;
-    bool canWalkThisFrame = true;
+    int canWalkThisFrame = 1;
     int damageThisFrame = 0;
 
     // combat stats
@@ -41,10 +41,15 @@ class Enemy {
     int painChanceDivisor = 4; // 1 in 4 chance
     float walk_angle_error = 10.0f * M_PI / 180.0f; // ±10 degrees
     float attackRange = 7.0f;
+    int doorOpenChanceDivisor = 3; // 1 in 3 chance
 
     // AI timing
     float thinkTimer = 0.0f;
     float thinkInterval = 0.3f;
+
+    // Door opening
+    std::pair<int, int> doorCoord;
+    bool wantToOpenThisFrame = false;
 
     std::pair<float, float> position, destinationOfWalk;
     float angle, sze=1.0f, moveSpeed = 1.0f, DurationPerSprite = 0.25f, fracTime = 0.0f;
@@ -78,7 +83,12 @@ public:
     bool isAlerted() const { return alerted; }
     int get_spriteID() const { return spriteID; }
     std::pair<float, float> askGameToMove(float deltaTime);
-    void cancelWalkThisFrame() { canWalkThisFrame = false; }
-    void allowWalkNextFrame() { canWalkThisFrame = true; }
+    void cancelWalkThisFrame(bool door);
+    void allowWalkNextFrame() { canWalkThisFrame = 1; }
     bool get_isDead() const { return isDead; }
+    bool canOpenDoor();
+    void openDoorAt(std::pair<int, int>);
+    bool get_wantToOpenDoor() const { return wantToOpenThisFrame; }
+    std::pair<int, int> nearbyDoor();
+    void reset_wantToOpenThisFrame() { wantToOpenThisFrame = false; }
 };

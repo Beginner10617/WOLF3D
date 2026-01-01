@@ -71,7 +71,7 @@ public:
     void acquireWeapon(int weaponType);
     bool playerHasWeapon(int weaponType);
     void loadWeaponsTexture(const char* filePath);
-    bool canMoveTo(float x, float y);
+    int canMoveTo(float x, float y);
     void loadHealthPackTexture(const char* filePath);
     void loadAmmoPackTexture(const char* filePath);
     void spawnRandomAmmoPack(std::pair<int, int>);
