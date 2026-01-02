@@ -100,9 +100,15 @@ private:
     std::vector<int> wallTextureHeights;
     struct Door {
         float openAmount;   // 0 = closed, 1 = fully open
+        float transitionSpeed = 1.5f;
+        float openDuration = 3.0f;
+        float openTimer = 0.0f;
+        bool vacant = true;
         bool opening;       // opening animation active
+        bool closing;       // closing animation active
         bool locked;        // requires key?
         int keyType;        // 0 = none, 1 = blue, 2 = red, 3 = gold
+
     };
     float DOOR_FRAME_SIZE = 0.125f; // 1/8
     float DOOR_SLAB_SIZE  = 0.75f; float doorHitT;

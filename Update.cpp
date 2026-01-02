@@ -7,6 +7,10 @@ void Game::update(float deltaTime)
     float lengthSquared = playerMoveDirection.first * playerMoveDirection.first +
     playerMoveDirection.second * playerMoveDirection.second;
 
+    // Last frame posn
+    int mapX = playerPosition.first;
+    int mapY = playerPosition.second;
+
     if (lengthSquared > 0.0f) {
         float length = sqrt(lengthSquared);
         playerMoveDirection.first /= length;
@@ -54,15 +58,20 @@ void Game::update(float deltaTime)
         }
     }
 
-    // Update doors
-    for (auto& [pos, d] : doors)
-    {
-        if (d.opening) {
-            d.openAmount += 1.5f * deltaTime;
-            if (d.openAmount >= 1.0f) {
-                d.openAmount = 1.0f;
-                d.opening = false;
-            }
+    // new posn
+    int newMapX = playerPosition.first;
+    int newMapY = playerPosition.second;
+
+    if(newMapX != mapX || newMapY != mapY){
+        if(isDoor(Map[mapY][mapX]) && 
+        doors.count({mapX, mapY})){
+            doors[{mapX, mapY}].vacant = true;
+            std::cout << "Vacated\n";
+        }
+        if(isDoor(Map[newMapY][newMapX]) && 
+        doors.count({newMapX, newMapY})){
+            doors[{newMapX, newMapY}].vacant = false;
+            std::cout<< "Filled\n";
         }
     }
 
@@ -137,6 +146,37 @@ void Game::update(float deltaTime)
         if(fireCooldown >= weapons[currentWeapon].coolDownTime){
             hasShot = false;
             shotThisFrame = false;
+        }
+    }
+
+
+    // Update doors
+    for (auto& [pos, d] : doors)
+    {
+        if (d.opening) {
+            d.openAmount += d.transitionSpeed * deltaTime;
+            if (d.openAmount >= 1.0f) {
+                d.openAmount = 1.0f;
+                d.opening = false;
+            }
+        }
+        else if (d.openAmount == 1.0f){
+            d.openTimer += deltaTime;
+            if(d.openTimer > d.openDuration){
+                    if(d.vacant){
+                        d.closing = true; 
+                        d.openTimer = 0.0f;
+                    } else 
+                    {d.openTimer = 0.0f; 
+                    std::cout<<"Restarting timer\n";}
+            } 
+        }
+        if(d.closing){
+            d.openAmount -= d.transitionSpeed * deltaTime;
+            if(d.openAmount < 0.0f){
+                d.closing = false;
+                d.openAmount = 0.0f;
+            }
         }
     }
 

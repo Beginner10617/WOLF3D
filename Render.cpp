@@ -190,18 +190,22 @@ void Game::render()
                 SDL_RenderCopy(renderer.get(), 
                 wallTextures[texId].get(), &srcRect, &destRect);
         }
-        else if (wallX > doors[{mapX, mapY}].openAmount) {
-
+        else if (wallX > doors[{mapX, mapY}].openAmount)
+        {
             wallX -= doors[{mapX, mapY}].openAmount;
-            int texX = (int)(wallX * imgWidth);
-            if(hitSide == 0 && rayDirX > 0) texX = imgWidth - texX - 1;
-            if(hitSide == 1 && rayDirY < 0) texX = imgWidth - texX - 1;
+
+            int texX = int(wallX * imgWidth);
             texX = std::clamp(texX, 0, imgWidth - 1);
 
             SDL_Rect srcRect  = { texX, 0, 1, imgHeight };
             SDL_Rect destRect = { ray, drawStart, 1, drawEnd - drawStart };
-            SDL_RenderCopy(renderer.get(), wallTextures[texId].get(), &srcRect, &destRect);
+
+            SDL_RenderCopy(renderer.get(),
+                        wallTextures[texId].get(),
+                        &srcRect,
+                        &destRect);
         }
+
 
         
     }
