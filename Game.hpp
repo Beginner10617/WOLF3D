@@ -43,6 +43,16 @@ static std::string toLower(const std::string &s) {
     return r;
 }
 
+enum class GameState{
+    //LOADIN, ADD LATER WHEN U ADD LOADING FROM BINARY
+    //FOR DEPICTING PROGESS BARS
+    MAINMENU,
+    GAMEPLAY,
+    PAUSE,
+    GAMELOOSE,
+    GAMEWON
+};
+
 class Game{
 public:
     Game();
@@ -80,8 +90,11 @@ public:
     void loadDoorFrame(const char* filePath);
     SDL_Renderer& getRenderer();
     const SDL_Renderer& getRenderer() const;
-
+    GameState getState();
+    void setState(GameState s) {state = s;};
 private:
+    GameState state;
+
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};
     SDLRendererPtr renderer {nullptr, SDL_DestroyRenderer};

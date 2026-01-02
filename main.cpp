@@ -4,6 +4,7 @@
 Game* game = nullptr;
 
 int main(int argc, char* argv[]) {
+    // Initialisation
     game = new Game();
     // Loading Enemies
     game->loadEnemies("enemies.txt");
