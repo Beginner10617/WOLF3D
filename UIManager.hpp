@@ -38,6 +38,11 @@ struct BitmapFont {
     std::string charset;
 };
 
+struct Notif{
+    std::string txt;
+    SDL_Color clr;
+};
+
 void drawFilledRectWithBorder(
     SDL_Renderer& renderer,
     const SDL_Rect& rect,
@@ -90,6 +95,9 @@ public:
         SDL_Renderer& rend,
         const std::pair<int, int>& screenWH
     );
+
+    static void updateNotifications();
+    static void notify(std::string text, SDL_Color);
 private:
     static WeaponType currentWeapon;
     static std::vector<KeyType> keysHeld;
@@ -114,4 +122,8 @@ private:
     
     static std::map<WeaponType, std::pair<int, int>> panelWeaponImageWH;
     static std::map<KeyType, std::pair<int, int>> keyUITexturesWH;
+
+    static std::vector<Notif> UINotification;
+    static float notifUpdateTimer;
+    static constexpr float notifDuration = 1.0f; 
 };

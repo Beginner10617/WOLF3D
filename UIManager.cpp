@@ -41,6 +41,9 @@ std::map<WeaponType, std::pair<int, int>> UIManager::panelWeaponImageWH={};
 std::map<KeyType, SDLTexturePtr> UIManager::keyUITextures={};
 std::map<KeyType, std::pair<int, int>> UIManager::keyUITexturesWH={};
 
+std::vector<Notif> UIManager::UINotification = {};
+float UIManager::notifUpdateTimer = 0.0f;
+
 static const char* weaponTypeToString(WeaponType w)
 {
     switch (w) {
@@ -143,6 +146,13 @@ void UIManager::addTexture(WeaponType weapon, const char* filePath, SDL_Renderer
 
 void UIManager::update(float deltaTime)
 {
+    if(UINotification.size())
+        notifUpdateTimer += deltaTime;
+    if(notifUpdateTimer > notifDuration){
+        updateNotifications();
+        notifUpdateTimer = 0.0f;
+    }
+
     if (!animating) return;
 
     auto& anim = weaponAnimations[currentWeapon];
@@ -163,6 +173,16 @@ void UIManager::update(float deltaTime)
             break;
         }
     }
+}
+
+void UIManager::updateNotifications(){
+    if(UINotification.size()){
+        UINotification.erase(UINotification.begin());
+    }
+}
+
+void UIManager::notify(std::string text, SDL_Color color){
+    UINotification.push_back({text, color});
 }
 
 void UIManager::animateOneShot()
@@ -196,6 +216,13 @@ void UIManager::addKey(KeyType key){
 }
 
 void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSize) {
+    // rendering notifs
+    int x = 0, y = 0, scale = 1;
+    for(auto notif : UINotification){
+        renderText(rend, notif.txt, x, y, scale, notif.clr);
+        y += font.glyphH * scale;
+    }
+
     panel = {0, screenSize.second - panelHeight, screenSize.first, panelHeight};
     drawFilledRectWithBorder(rend, panel, panelFillColor, panelBorderColor, panelBorderThickness);
     renderWeapon(rend, screenSize, panelHeight);
@@ -205,7 +232,7 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
 
     // AMMO AND HEALTH TEXT
     SDL_Color clr = {153, 159, 253, 255};
-    int ax = 0, hx=0, y = 0, i = 0, j = (int) HUDSections::HEALTH;
+    int ax = 0, hx=0, i = 0, j = (int) HUDSections::HEALTH;y=0;
     while(i<j){
         if(i == (int) HUDSections::AMMO)
             ax = hx;
@@ -227,12 +254,12 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
     
     // AMMO AND HEALTH VALUE
     y += font.glyphH;
-    int scale = (panelHeight - font.glyphH)/font.glyphH ; //size
+    scale = (panelHeight - font.glyphH)/font.glyphH ; //size
     // centering Y
     y = (y + screenSize.second) / 2 - scale * font.glyphH / 2;
 
     // WRITING AMMOS
-    std::string txt; int width, x = 0;
+    std::string txt; int width; x = 0;
     //std::cout<<ammo.count(currentWeapon)<<"\n";
     if(ammo.count(currentWeapon)){
         txt = std::to_string(ammo[currentWeapon]);

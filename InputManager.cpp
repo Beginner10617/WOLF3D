@@ -1,5 +1,5 @@
 #include "Game.hpp"
-
+#include "UIManager.hpp"
 void Game::handleEvents()
 {
     SDL_Event event;
@@ -42,6 +42,48 @@ void Game::handleEvents()
             playerAngle += event.motion.xrel * mouseSensitivity;
             playerAngle = fmod(playerAngle, 2 * PI);
         }
+
+        if (event.type == SDL_KEYDOWN && event.key.repeat == 0)
+        {
+            if (event.key.keysym.scancode == SDL_SCANCODE_SPACE)
+            {
+                int tx = (int)(playerPosition.first  + cos(playerAngle));
+                int ty = (int)(playerPosition.second + sin(playerAngle));
+
+                auto key = std::make_pair(tx, ty);
+                if (doors.count(key)) {
+                    Door& d = doors[key];
+
+                    if (d.locked && !playerHasKey(d.keyType))
+                    {   // Do nothing
+                        std::cout << "Door is locked! Need key type: " << d.keyType << "\n";
+                        std::string name = ""; SDL_Color color;
+                        switch(d.keyType){
+                            case 1:
+                                name = "BLUE";
+                                color= {0, 252, 252, 255};
+                                break;
+                            case 2:
+                                name = "RED";
+                                color= {164, 0, 0, 255};
+                                break;
+                            case 3:
+                                name = "GOLD";
+                                color= {204, 196, 0, 255};
+                                break;
+                            default:
+                                color = {0,0,0,0}; 
+                        }
+                        UIManager::notify("NEED "+name+" KEY TO OPEN", color);
+                    }
+                    else if (d.openAmount == 0.0f){
+                        AudioManager::playSFX("door_open", MIX_MAX_VOLUME);
+                        d.opening = true;
+                    }
+                }
+            }
+        }
+
     }
 
     // Keyboard movement detection
@@ -79,28 +121,6 @@ void Game::handleEvents()
 
     if (keystate[SDL_SCANCODE_RIGHT])
         playerAngle += rotationSensitivity;
-
-    // Door interaction (Space to open/close)
-    // Door interaction (Space to open/close)
-    if (keystate[SDL_SCANCODE_SPACE])
-    {
-        int tx = (int)(playerPosition.first  + cos(playerAngle));
-        int ty = (int)(playerPosition.second + sin(playerAngle));
-
-        auto key = std::make_pair(tx, ty);
-        if (doors.count(key)) {
-            Door& d = doors[key];
-
-            if (d.locked && !playerHasKey(d.keyType))
-            {   // Do nothing
-                std::cout << "Door is locked! Need key type: " << d.keyType << "\n";
-            }
-            else if (d.openAmount == 0.0f){
-                AudioManager::playSFX("door_open", MIX_MAX_VOLUME);
-                d.opening = true;
-            }
-        }
-    }
 
     // Weapon switching (number keys)
     if(keystate[SDL_SCANCODE_1]){
