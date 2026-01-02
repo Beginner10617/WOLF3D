@@ -98,7 +98,7 @@ void Game::update(float deltaTime)
             !(doors[coor].opening || doors[coor].closing)){
                 doors[coor].opening = true;
             }
-            else{
+            else if(doors.count(coor)==0){
                 std::cerr<<"No door at ("<<coor.first<<", "<<coor.second<<")\n";
             }
             e->reset_wantToOpenThisFrame();
@@ -190,6 +190,7 @@ void Game::update(float deltaTime)
                     if(d.vacant){
                         d.closing = true; 
                         d.openTimer = 0.0f;
+                        AudioManager::playSFX("door_close", MIX_MAX_VOLUME);
                     } else 
                     {d.openTimer = 0.0f; 
                     std::cout<<"Restarting timer\n";}

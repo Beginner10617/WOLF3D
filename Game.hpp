@@ -100,7 +100,7 @@ private:
     std::vector<int> wallTextureHeights;
     struct Door {
         float openAmount;   // 0 = closed, 1 = fully open
-        float transitionSpeed = 1.5f;
+        float transitionSpeed = 1.0f;
         float openDuration = 3.0f;
         float openTimer = 0.0f;
         bool vacant = true;

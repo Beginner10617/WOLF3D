@@ -41,7 +41,7 @@ class Enemy {
     int painChanceDivisor = 4; // 1 in 4 chance
     float walk_angle_error = 10.0f * M_PI / 180.0f; // ±10 degrees
     float attackRange = 7.0f;
-    int doorOpenChanceDivisor = 1; // 1 in 3 chance
+    int doorOpenChanceDivisor = 3; // 1 in 3 chance
 
     // AI timing
     float thinkTimer = 0.0f;
