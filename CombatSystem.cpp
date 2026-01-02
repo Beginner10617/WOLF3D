@@ -156,9 +156,42 @@ bool Game::playerHasWeapon(int weaponType) {
 }
 
 void Game::spawnRandomAmmoPack(std::pair<int, int> pos){
-    int type = 3 + (rand() % 2);
+    int type = 3 + (rand() % (weapons.size()>2? 2 : 1));
+    auto spawnPoint = pos;
+    
+    if (Map[pos.second][pos.first] > 0)
+    {
+        bool found = false;
+        int maxRadius = 10; // safety limit,
+
+        for (int r = 1; r <= maxRadius && !found; r++)
+        {
+            for (int dy = -r; dy <= r && !found; dy++)
+            {
+                for (int dx = -r; dx <= r && !found; dx++)
+                {
+                    // only check the border of the square (nearest first)
+                    if (abs(dx) != r && abs(dy) != r) continue;
+
+                    int nx = pos.first  + dx;
+                    int ny = pos.second + dy;
+
+                    if (ny < 0 || ny >= Map.size() ||
+                        nx < 0 || nx >= Map[0].size())
+                        continue;
+
+                    if (Map[ny][nx] == 0)
+                    {
+                        spawnPoint = { nx, ny };
+                        found = true;
+                    }
+                }
+            }
+        }
+    }
+
     int spriteID = AllSpriteTextures.size();
-    AmmoPackPositions[{type, spriteID}] = pos;
-    AllSpriteTextures.push_back(Sprite{ spriteID, pos, ammoPackTextures[2],
+    AmmoPackPositions[{type, spriteID}] = spawnPoint;
+    AllSpriteTextures.push_back(Sprite{ spriteID, spawnPoint, ammoPackTextures[2],
                  ammoPackWidthsHeights[3].first, ammoPackWidthsHeights[3].second});
 }
