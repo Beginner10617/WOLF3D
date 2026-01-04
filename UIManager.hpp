@@ -81,8 +81,6 @@ public:
         SDL_Color color
     );
 
-    static void renderPauseMenu(SDL_Renderer& renderer, const std::pair<int, int>& WH);
-
     static void setWeapon(WeaponType weapon);
     static void setAmmo(const char, int num);
     static void setHealth(int hp);
@@ -98,7 +96,7 @@ public:
 
     static void updateNotifications();
     static void notify(std::string text, SDL_Color);
-
+    static void reset();
     static void drawFilledRectWithBorder(
         SDL_Renderer& renderer,
         const SDL_Rect& rect,

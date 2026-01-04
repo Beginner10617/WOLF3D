@@ -21,6 +21,7 @@ bool aabbIntersect(
 
 void Game::placePlayerAt(int x, int y, float angle) {
     playerPosition = {static_cast<double>(x), static_cast<double>(y)};
+    playerPositionOnLoad = playerPosition;
     playerAngle = angle;
 }
 

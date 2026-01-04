@@ -612,3 +612,10 @@ void UIManager::addPanelTextureK(KeyType key,
 std::pair<int, int> UIManager::getGlyphSize(){
     return {font.glyphW, font.glyphH};
 }
+
+void UIManager::reset(){
+    currentWeapon = WeaponType::None;
+    keysHeld.clear();
+    ammo.clear();
+    
+}

@@ -317,8 +317,7 @@ void Game::render()
             dmg = (rand() & 31) * weapons[currentWeapon].multiplier;
         std::cout << "Enemy at index " << enemyShotIndex << " shot for " << dmg << " damage.\n";
         if (rayCastEnemyToPlayer(*enemies[enemyShotIndex], true)){
-            if(enemies[enemyShotIndex]->takeDamage(dmg)){
-                
+            if(enemies[enemyShotIndex]->takeDamage(dmg)){    
                 spawnRandomAmmoPack(std::make_pair((int)x, (int)y)); 
             }
         }

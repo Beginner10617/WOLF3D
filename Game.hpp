@@ -49,7 +49,8 @@ enum class GameState{
     GAMEPLAY,
     PAUSEMENU,
     GAMELOOSE,
-    GAMEWON
+    GAMEWON,
+    RESET
 };
 
 class Game{
@@ -93,6 +94,7 @@ public:
     void setState(GameState s) {state = s;};
     void quit(){isRunning=false;}
     GameState state = GameState::GAMEPLAY;
+    void restart();
 private:
 
     bool isRunning;
@@ -104,7 +106,7 @@ private:
 
     float playerHeight=0.5f, mouseSensitivity=0.002f;
     float playerSquareSize=0.5f;
-    std::pair<float, float> playerPosition;
+    std::pair<float, float> playerPosition, playerPositionOnLoad;
     std::pair<int, int> ScreenHeightWidth;
     std::pair<double, double> playerMoveDirection = {0.0, 0.0};
     std::vector<std::vector<int>> Map;
@@ -130,6 +132,7 @@ private:
     std::map<std::pair<int,int>, Door> doors;  // key: (mapX,mapY)
     std::vector<int> keysHeld; // keys the player has collected
     std::vector<std::unique_ptr<Enemy>> enemies;
+    std::vector<std::pair<float, float>> enemyLoadLocations;
     std::map<std::pair<int, int>, SDLTexturePtr> enemyTextures;
     std::map<int, int> enemySpriteIDToindex;
     int enemyTextureWidth = 64;
@@ -185,6 +188,7 @@ private:
     std::vector<SDLTexturePtr> ammoPackTextures;
     std::map<int, int> ammoAmounts = {{1,15}, {2,10}, {3,5}, {4,5}};
     float ammoPackRadius = 0.25f;
+    std::vector<int> indexOfSpawnedAmmos;
     // A a
 
     std::map<char, SDLTexturePtr> DecorationTextures;

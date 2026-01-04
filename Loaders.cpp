@@ -305,7 +305,7 @@ void Game::loadEnemies(const char* filePath)
             std::cerr << "Invalid enemy entry: " << line << '\n';
             continue;
         }
-
+        enemyLoadLocations.push_back(std::make_pair(x, y));
         addEnemy(x, y, 0.0f);
     }
 

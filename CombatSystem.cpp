@@ -192,6 +192,7 @@ void Game::spawnRandomAmmoPack(std::pair<int, int> pos){
 
     int spriteID = AllSpriteTextures.size();
     AmmoPackPositions[{type, spriteID}] = spawnPoint;
+    indexOfSpawnedAmmos.push_back(AllSpriteTextures.size());
     AllSpriteTextures.push_back(Sprite{ spriteID, spawnPoint, ammoPackTextures[2],
                  ammoPackWidthsHeights[3].first, ammoPackWidthsHeights[3].second});
 }

@@ -60,7 +60,7 @@ std::string MenuManager::displayTxt;
 
 // Actions
 void play(GameState& state){
-    state = GameState::GAMEPLAY;
+    state = GameState::RESET;
     MenuManager::setMenu(Menu::NONE);   
     return;
 }

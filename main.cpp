@@ -46,7 +46,9 @@ int main(int argc, char* argv[]) {
             game->update(deltaTime);
             game->render();
             break;
-        
+        case GameState::RESET:
+            game->restart();
+            break;
         default:
             if (MenuManager::handleEvents(game->state))
                 game->quit();

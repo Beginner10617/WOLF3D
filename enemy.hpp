@@ -90,4 +90,13 @@ public:
     bool get_wantToOpenDoor() const { return wantToOpenThisFrame; }
     std::pair<int, int> nearbyDoor();
     void reset_wantToOpenThisFrame() { wantToOpenThisFrame = false; }
+    void reset(){
+        state = ENEMY_IDLE;
+        alerted = false;
+        isDead = false;
+        health = 100;
+        thinkTimer = 0.0f;
+        stateLocked = false;
+    }
+    void setPosition(std::pair<float, float> x){position=x;}
 };
