@@ -61,6 +61,7 @@ std::string MenuManager::displayTxt;
 // Actions
 void play(GameState& state){
     state = GameState::GAMEPLAY;
+    MenuManager::setMenu(Menu::NONE);   
     return;
 }
 void back_to_menu(GameState& state){
@@ -79,6 +80,10 @@ void show_credits(GameState& state){
 R"(HELLO
 WORLDD)");
 }
+void resume(GameState& state){
+    state = GameState::GAMEPLAY;
+    MenuManager::setMenu(Menu::NONE);
+}
 void MenuManager::Init(SDL_Renderer& r){
     loadCursorImage("Textures/Red_triangle.svg", r);
     currentMenu = Menu::MAIN;
@@ -90,6 +95,7 @@ void MenuManager::Init(SDL_Renderer& r){
     bind(Menu::CREDITS, 0, back_to_menu);
     bind(Menu::MAIN, 1, show_instructions);
     bind(Menu::MAIN, 2, show_credits);
+    bind(Menu::PAUSE, 0, resume);
 
 }
 

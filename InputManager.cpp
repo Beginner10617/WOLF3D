@@ -1,7 +1,7 @@
 #include "Game.hpp"
 #include "UIManager.hpp"
 #include "AudioManager.hpp"
-
+#include "MenuManager.hpp"
 void Game::handleEvents()
 {
     SDL_Event event;
@@ -83,6 +83,10 @@ void Game::handleEvents()
                         d.opening = true;
                     }
                 }
+            }
+            else if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
+                state = GameState::PAUSEMENU;
+                MenuManager::setMenu(Menu::PAUSE);
             }
         }
 
