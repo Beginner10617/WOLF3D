@@ -55,9 +55,10 @@ public:
 
         auto oIt = mIt->second.find(optionSelected);
         if (oIt == mIt->second.end()) return;
-
+        std::cout<<"CALLING FUNCTION\n";
         oIt->second(state);
     }
+    static void set_displayTxt(std::string);
     static void loadCursorImage(const char* filePath, SDL_Renderer& r);
     static void Init(SDL_Renderer&);
     static bool handleEvents(GameState&);
@@ -81,5 +82,5 @@ private:
     > actions;
 
     static std::tuple<SDL_Color, SDL_Color, SDL_Color, SDL_Color> menuColors;
-    static std::tuple<int, int> fontSizes;
+    static std::string displayTxt;
 };

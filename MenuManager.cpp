@@ -1,5 +1,5 @@
 #include "MenuManager.hpp"
-
+#include <sstream>
 std::unordered_map<
     Menu,
     std::unordered_map<int, Action>,
@@ -56,17 +56,41 @@ std::unordered_map<
 
 SDLTexturePtr MenuManager::cursorImage{nullptr, SDL_DestroyTexture};
 std::pair<int, int> MenuManager::cursorImageWH;
+std::string MenuManager::displayTxt;
 
 // Actions
 void play(GameState& state){
     state = GameState::GAMEPLAY;
     return;
 }
-
+void back_to_menu(GameState& state){
+    state = GameState::MAINMENU;
+    MenuManager::setMenu(Menu::MAIN);
+}
+void show_instructions(GameState& state){
+    MenuManager::setMenu(Menu::INSTRUCTIONS);
+    MenuManager::set_displayTxt(
+R"(HELLO
+WORLD)");
+}
+void show_credits(GameState& state){
+    MenuManager::setMenu(Menu::CREDITS);
+    MenuManager::set_displayTxt(
+R"(HELLO
+WORLDD)");
+}
 void MenuManager::Init(SDL_Renderer& r){
     loadCursorImage("Textures/Red_triangle.svg", r);
     currentMenu = Menu::MAIN;
+
+    // Binding actions
     bind(Menu::MAIN, 0, play);
+    bind(Menu::PAUSE, 2, back_to_menu);
+    bind(Menu::INSTRUCTIONS, 0, back_to_menu);
+    bind(Menu::CREDITS, 0, back_to_menu);
+    bind(Menu::MAIN, 1, show_instructions);
+    bind(Menu::MAIN, 2, show_credits);
+
 }
 
 std::tuple<SDL_Color, SDL_Color, SDL_Color, SDL_Color> 
@@ -77,11 +101,18 @@ MenuManager::menuColors = {
     SDL_Color{142, 142, 142, 255}    // Font Low
 };
 
-std::tuple<int, int> MenuManager::fontSizes = {
-    2,  // Buttons
-    3   // Title
+std::unordered_map<Menu, std::string, MenuHash> MenuManager::titles ={
+    {Menu::MAIN, "OPTIONS"},
+    {Menu::PAUSE, "OPTIONS"},
+    {Menu::GAME_LOSE, "YOU DIED :("},
+    {Menu::GAME_WON, "YOU WON :)"},
+    {Menu::INSTRUCTIONS, "CONTROLS"},
+    {Menu::CREDITS, "CREDITS"}
 };
 
+void MenuManager::set_displayTxt(std::string x){
+    displayTxt = x;
+}
 bool MenuManager::handleEvents(GameState& state){
     SDL_Event event;
 
@@ -102,6 +133,11 @@ bool MenuManager::handleEvents(GameState& state){
             }else if (event.key.keysym.scancode == SDL_SCANCODE_RETURN ||
                 event.key.keysym.scancode == SDL_SCANCODE_KP_ENTER)
             {
+                if(buttonNames.count(currentMenu) &&
+                    buttonNames[currentMenu][optionSelected]=="QUIT"){
+                    return true;
+                }
+                std::cout<<"SELECTED OPTION "<<optionSelected<<std::endl;
                 select(state);
             }
         }
@@ -143,8 +179,9 @@ void MenuManager::renderMenu(SDL_Renderer& renderer, const std::pair<int, int>& 
 
     // Painting foreground
     int scale = 2;
-    int w = 14 * UIManager::getGlyphSize().first * scale;
-    int h = buttonNames[currentMenu].size() * UIManager::getGlyphSize().second * scale;
+    int w = 14 * UIManager::getGlyphSize().first * scale, h=0;
+    if (buttonNames.count(currentMenu))
+        h = buttonNames[currentMenu].size() * UIManager::getGlyphSize().second * scale;
     int x = screenWH.first/2 - w/2;
     int y = screenWH.second/2 - h/2;
 
@@ -156,7 +193,7 @@ void MenuManager::renderMenu(SDL_Renderer& renderer, const std::pair<int, int>& 
     // Writing options
     x += UIManager::getGlyphSize().first * scale;
     std::string s;
-    for (int i=0; i<buttonNames[currentMenu].size(); i++){
+    for (int i=0; h>0 && i<buttonNames[currentMenu].size(); i++){
         s = buttonNames[currentMenu][i];
         if (i==optionSelected)
             UIManager::renderText(renderer, s, x, y, scale, fontclrHig);
@@ -165,6 +202,29 @@ void MenuManager::renderMenu(SDL_Renderer& renderer, const std::pair<int, int>& 
         y += UIManager::getGlyphSize().second * scale;
     }
 
+    // display text for some menus
+    scale = 2;
+    x -= UIManager::getGlyphSize().first * scale;
+    if(h==0){
+        std::istringstream iss(displayTxt);
+        std::string line;
+        int lines = std::count(displayTxt.begin(), displayTxt.end(), '\n');
+        h = lines * UIManager::getGlyphSize().second * scale;
+        y = screenWH.second/2 - h/2;
+        while (std::getline(iss, line)) {
+            UIManager::renderText(renderer, line, x, y, scale, fontclrHig);
+            y += UIManager::getGlyphSize().second * scale;
+        }
+    }
+
+    // display title
+    scale = 4;
+    if(titles.count(currentMenu)){
+        w = titles[currentMenu].size() * UIManager::getGlyphSize().first * scale;
+        x = screenWH.first/2 - w/2;
+        y = UIManager::getGlyphSize().second * 2;
+        UIManager::renderText(renderer, titles[currentMenu], x, y, scale, fontclrHig);
+    }
     SDL_RenderPresent(&renderer);
 
 }
