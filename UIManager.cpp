@@ -608,3 +608,7 @@ void UIManager::addPanelTextureK(KeyType key,
 
     keyUITexturesWH[key] = std::make_pair(width, height);
 }
+
+std::pair<int, int> UIManager::getGlyphSize(){
+    return {font.glyphW, font.glyphH};
+}

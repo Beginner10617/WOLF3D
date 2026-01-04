@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
             break;
         
         default:
-            if (MenuManager::handleEvents())
+            if (MenuManager::handleEvents(game->state))
                 game->quit();
             MenuManager::renderMenu(game->getRenderer(), {800, 600});
             break;

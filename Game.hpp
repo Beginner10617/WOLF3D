@@ -92,8 +92,8 @@ public:
     GameState getState() {return state;};
     void setState(GameState s) {state = s;};
     void quit(){isRunning=false;}
-private:
     GameState state = GameState::GAMEPLAY;
+private:
 
     bool isRunning;
     SDLWindowPtr   window   {nullptr, SDL_DestroyWindow};

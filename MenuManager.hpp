@@ -6,9 +6,12 @@
 
 enum class Menu {
     MAIN,
+    NONE, // During Gameplay
     PAUSE,
     GAME_LOSE,
-    GAME_WON
+    GAME_WON,
+    INSTRUCTIONS,
+    CREDITS
 };
 
 struct MenuHash {
@@ -17,7 +20,7 @@ struct MenuHash {
     }
 };
 
-using Action = std::function<void(void)>;
+using Action = std::function<void(GameState&)>;
 
 class MenuManager {
 public:
@@ -35,6 +38,7 @@ public:
 
     static void moveUp() {
         if (optionSelected > 0) optionSelected--;
+        std::cout<<optionSelected<<std::endl;
     }
 
     static void moveDown() {
@@ -42,20 +46,21 @@ public:
         if (optionSelected + 1 < max) {
             optionSelected++;
         }
+        std::cout<<optionSelected<<std::endl;
     }
 
-    static void select() {
+    static void select(GameState& state) {
         auto mIt = actions.find(currentMenu);
         if (mIt == actions.end()) return;
 
         auto oIt = mIt->second.find(optionSelected);
         if (oIt == mIt->second.end()) return;
 
-        oIt->second();
+        oIt->second(state);
     }
     static void loadCursorImage(const char* filePath, SDL_Renderer& r);
     static void Init(SDL_Renderer&);
-    static bool handleEvents();
+    static bool handleEvents(GameState&);
     static void renderMenu(SDL_Renderer&, const std::pair<int, int>&); // use UIManager here
     // No "update" needed in menus, also no separate textures
     // only plain filled squares and text
@@ -68,12 +73,13 @@ private:
     static std::unordered_map<Menu, int, MenuHash> optionCounts;
     static std::unordered_map<Menu, std::vector<std::string>, MenuHash> 
     buttonNames;
+    static std::unordered_map<Menu, std::string, MenuHash> titles;
     static std::unordered_map<
         Menu,
         std::unordered_map<int, Action>,
         MenuHash
     > actions;
 
-    static std::tuple<SDL_Color, SDL_Color, SDL_Color> menuColors;
+    static std::tuple<SDL_Color, SDL_Color, SDL_Color, SDL_Color> menuColors;
     static std::tuple<int, int> fontSizes;
 };
