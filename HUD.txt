@@ -31,3 +31,10 @@ Textures/HUD/0rifle.png
 Textures/HUD/Key1.png
 Textures/HUD/Key2.png
 Textures/HUD/Key3.png
+
+[Avatar]
+Textures/Avatar/frame_4.png
+Textures/Avatar/frame_3.png
+Textures/Avatar/frame_2.png
+Textures/Avatar/frame_1.png
+Textures/Avatar/frame_0.png

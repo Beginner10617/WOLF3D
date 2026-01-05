@@ -19,6 +19,9 @@ std::map<WeaponType, UIAnimation> UIManager::weaponAnimations = {
     { WeaponType::Pistol, UIAnimation{} },
     { WeaponType::Rifle,  UIAnimation{} }
 };
+UIAnimation UIManager::AvatarAnimation{};
+float UIManager::avatarTimer = 0.0f;
+int UIManager::avatarFrame = 0;
 
 BitmapFont UIManager::font;
 SDL_Rect UIManager::panel = { 0, 0, 0, 0 };
@@ -28,11 +31,11 @@ int UIManager::panelBorderThickness = 1;
 SDL_Color UIManager::panelFillColor = {0, 0, 165 ,255};
 SDL_Color UIManager::panelBorderColor = {255, 255, 255 ,255};
 std::map<HUDSections, int> UIManager::panelSectionWidths = {
-    {HUDSections::WEAPON, 192}, 
+    {HUDSections::WEAPON, 192 + 20}, 
     {HUDSections::AMMO, 88}, 
-    {HUDSections::AVATAR, 240}, 
+    {HUDSections::AVATAR, 200}, 
     {HUDSections::HEALTH, 132}, 
-    {HUDSections::KEYS, 148} 
+    {HUDSections::KEYS, 148 + 20} 
 };
 
 std::map<WeaponType, SDLTexturePtr> UIManager::panelWeaponImage={};
@@ -62,7 +65,7 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
         return;
     }
 
-    enum Section { NONE, KNIFE, PISTOL, RIFLE, FONT, WEAPONPANEL, KEYS};
+    enum Section { NONE, KNIFE, PISTOL, RIFLE, FONT, WEAPONPANEL, KEYS, AVATAR};
     Section currentSection = NONE;
 
     std::string line;
@@ -103,6 +106,10 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
             currentSection = KEYS;
             continue;
         }
+        if (low == "[avatar]"){
+            currentSection = AVATAR;
+            continue;
+        }
 
         // If it’s not a section header, it must be a file path
         if (currentSection == KNIFE) {
@@ -126,6 +133,9 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
             addPanelTextureK(static_cast<KeyType>(keyUITextures.size())
             , line.c_str(), rend);
         }
+        else if (currentSection == AVATAR){
+            addAvatarFrame(line.c_str(), rend);
+        }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
         }
@@ -144,6 +154,17 @@ void UIManager::addTexture(WeaponType weapon, const char* filePath, SDL_Renderer
     weaponAnimations[weapon].frames.emplace_back(raw, SDL_DestroyTexture);
 }
 
+void UIManager::addAvatarFrame(const char* filePath, SDL_Renderer& renderer){
+    SDL_Texture* raw = IMG_LoadTexture(&renderer, filePath);
+    if (!raw) {
+        std::cerr << "Failed to Avatar texture: "
+                  << filePath << " | " << IMG_GetError() << "\n";
+        return;
+    }
+
+    AvatarAnimation.frames.emplace_back(raw, SDL_DestroyTexture);
+}
+
 void UIManager::update(float deltaTime)
 {
     if(UINotification.size())
@@ -153,9 +174,20 @@ void UIManager::update(float deltaTime)
         notifUpdateTimer = 0.0f;
     }
 
+    auto& anim = AvatarAnimation;
+    avatarTimer += deltaTime;
+    while (avatarTimer >= frameDuration)
+    {
+        avatarTimer -= frameDuration;
+        avatarFrame++;
+        if(avatarFrame >= AvatarAnimation.frames.size()){
+            avatarFrame = 0;
+        }
+    }
+
     if (!animating) return;
 
-    auto& anim = weaponAnimations[currentWeapon];
+    anim = weaponAnimations[currentWeapon];
     if (anim.frames.empty()) return;
 
     weaponAnimTimer += deltaTime;
@@ -280,6 +312,30 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
 
     // rendering keys
     renderKeys(rend, screenSize);
+
+    // render avatar
+    renderAvatar(rend, screenSize);
+}
+
+void UIManager::renderAvatar(SDL_Renderer& rend, 
+    const std::pair<int,int>& screenSize){
+    if(AvatarAnimation.frames.size()==0)
+        return;
+    int y = screenSize.second - panelHeight, h = panelHeight;
+    int x = 0, w = panelSectionWidths[HUDSections::AVATAR];
+    int i=0, j = (int) HUDSections::AVATAR;
+    while(i<j){
+        x += panelSectionWidths[static_cast<HUDSections>(i)];
+        i++;
+    }
+    x+=1;y+=1;w-=2;h-=2;
+    SDL_Rect dstRect {x, y, w, h};
+    SDL_RenderCopy(
+        &rend,
+        AvatarAnimation.frames[avatarFrame].get(), 
+        nullptr,
+        &dstRect
+    );
 }
 
 void UIManager::renderKeys(

@@ -104,6 +104,10 @@ public:
         SDL_Color borderColor,
         int borderThickness
     );
+
+    static void addAvatarFrame(const char*, SDL_Renderer&);
+    static void renderAvatar(SDL_Renderer& rend, 
+    const std::pair<int,int>& screenSize);
 private:
     static WeaponType currentWeapon;
     static std::vector<KeyType> keysHeld;
@@ -132,4 +136,8 @@ private:
     static std::vector<Notif> UINotification;
     static float notifUpdateTimer;
     static constexpr float notifDuration = 1.0f; 
+
+    static UIAnimation AvatarAnimation;
+    static int avatarFrame;
+    static float avatarTimer;
 };
