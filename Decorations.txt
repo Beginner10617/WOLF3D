@@ -1,5 +1,3 @@
-F : Textures/Decorations/0flag-1.png
-f : Textures/Decorations/0flag-2.png
 I : Textures/Decorations/0lamp.png
 l : Textures/Decorations/0light-1.png
 L : Textures/Decorations/0light-2.png
