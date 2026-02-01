@@ -140,4 +140,5 @@ private:
     static UIAnimation AvatarAnimation;
     static int avatarFrame;
     static float avatarTimer;
+    static std::pair<int, int> AvatarDimensions;
 };

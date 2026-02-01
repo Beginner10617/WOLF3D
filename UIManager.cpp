@@ -22,7 +22,7 @@ std::map<WeaponType, UIAnimation> UIManager::weaponAnimations = {
 UIAnimation UIManager::AvatarAnimation{};
 float UIManager::avatarTimer = 0.0f;
 int UIManager::avatarFrame = 0;
-
+std::pair<int, int> UIManager::AvatarDimensions = {0, 0};
 BitmapFont UIManager::font;
 SDL_Rect UIManager::panel = { 0, 0, 0, 0 };
 
@@ -161,7 +161,15 @@ void UIManager::addAvatarFrame(const char* filePath, SDL_Renderer& renderer){
                   << filePath << " | " << IMG_GetError() << "\n";
         return;
     }
-
+    if (AvatarDimensions.first == 0 && AvatarDimensions.second == 0){
+        int width = 0, height = 0;
+        if (SDL_QueryTexture(raw, nullptr, nullptr, &width, &height) != 0) {
+            std::cerr << "Failed to query texture: "
+                      << SDL_GetError() << "\n";
+            return;
+        }
+        AvatarDimensions = std::make_pair(width, height);
+    }
     AvatarAnimation.frames.emplace_back(raw, SDL_DestroyTexture);
 }
 
@@ -328,7 +336,17 @@ void UIManager::renderAvatar(SDL_Renderer& rend,
         i++;
     }
     x+=1;y+=1;w-=2;h-=2;
-    SDL_Rect dstRect {x, y, w, h};
+    // Compute scale to fit inside w x h (no aspect ratio change)
+    auto [texW, texH] = AvatarDimensions;
+    float scaleX = static_cast<float>(w) / texW;
+    float scaleY = static_cast<float>(h) / texH;
+    float scale  = std::min(scaleX, scaleY);
+    int drawW = static_cast<int>(texW * scale);
+    int drawH = static_cast<int>(texH * scale);
+    // Center inside panel
+    x = x + (w - drawW) / 2;
+    y = y + (h - drawH) / 2;
+    SDL_Rect dstRect {x, y, drawW, drawH};
     SDL_RenderCopy(
         &rend,
         AvatarAnimation.frames[avatarFrame].get(), 
