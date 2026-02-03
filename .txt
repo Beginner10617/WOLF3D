@@ -1,0 +1,14 @@
+Important to do:
+1. Compile all data into a single binary package file:
+    - Textures
+    - Audios/Music
+    - Enemy positions
+    - Map
+2. Compile an easy-to-run binary
+    a. The binary currently can exclusively run via terminal
+    
+Cherry On Top:
+1. Restart Music and Audio systems too
+    a. Sometimes door closing sounds continue when restarting
+    b. Gameplay Music should remain same after restarting
+2. Add Icon Image
