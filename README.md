@@ -7,7 +7,7 @@ This project is a recreation of classic early‑90s FPS mechanics: grid‑based 
 
 ---
 
-## ✨ Features
+## Features
 
 * Classic **raycasting renderer** (2.5D)
 * Grid‑based map system
@@ -19,7 +19,7 @@ This project is a recreation of classic early‑90s FPS mechanics: grid‑based 
 
 ---
 
-## 🕹️ Controls
+## Controls
 
 | Key   | Action        |
 | ----- | ------------- |
@@ -35,7 +35,7 @@ This project is a recreation of classic early‑90s FPS mechanics: grid‑based 
 
 ---
 
-## 🧠 How It Works (Raycasting Overview)
+## How It Works (Raycasting Overview)
 
 The engine uses **raycasting**, where:
 
@@ -48,7 +48,7 @@ This technique was famously used in games like **Wolfenstein 3D (1992)**.
 
 ---
 
-## 🗺️ Map System
+## Map System
 
 * Maps are stored as a **2D integer grid**
 * `0` represents empty space
@@ -68,7 +68,7 @@ Example:
 
 ---
 
-## 🛠️ Build Instructions
+## Build Instructions
 
 ### Dependencies
 
@@ -98,7 +98,7 @@ make
 
 ---
 
-## 🚧 Known Limitations
+## Known Limitations
 
 * No floor/ceiling texturing
 * Single‑level map
@@ -115,7 +115,7 @@ make
 
 ---
 
-## 📚 References & Inspiration
+## References & Inspiration
 
 * *Wolfenstein 3D* (id Software, 1992)
 * SDL2 Documentation
