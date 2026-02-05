@@ -76,6 +76,12 @@ void show_instructions(GameState& state){
 R"(HELLO
 WORLD)");
 }
+void show_instructions_pause(GameState& state){
+    MenuManager::setMenu(Menu::INSTRUCTIONS_DURING_PAUSE);
+    MenuManager::set_displayTxt(
+R"(HELLO
+WORLD)");
+}
 void show_credits(GameState& state){
     MenuManager::setMenu(Menu::CREDITS);
     MenuManager::set_displayTxt(
@@ -101,6 +107,8 @@ void MenuManager::Init(SDL_Renderer& r){
     bind(Menu::MAIN, 1, show_instructions);
     bind(Menu::MAIN, 2, show_credits);
     bind(Menu::PAUSE, 0, resume);
+    bind(Menu::PAUSE, 1, show_instructions_pause);
+    bind(Menu::INSTRUCTIONS_DURING_PAUSE, 0, resume);
 
 }
 
@@ -118,7 +126,8 @@ std::unordered_map<Menu, std::string, MenuHash> MenuManager::titles ={
     {Menu::GAME_LOSE, "YOU DIED"},
     {Menu::GAME_WON, "YOU WON"},
     {Menu::INSTRUCTIONS, "CONTROLS"},
-    {Menu::CREDITS, "CREDITS"}
+    {Menu::CREDITS, "CREDITS"},
+    {Menu::INSTRUCTIONS_DURING_PAUSE, "CONTROLS"}
 };
 
 void MenuManager::set_displayTxt(std::string x){

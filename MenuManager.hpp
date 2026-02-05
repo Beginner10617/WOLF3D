@@ -12,6 +12,7 @@ enum class Menu {
     GAME_LOSE,
     GAME_WON,
     INSTRUCTIONS,
+    INSTRUCTIONS_DURING_PAUSE,
     CREDITS
 };
 
