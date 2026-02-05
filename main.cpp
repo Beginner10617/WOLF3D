@@ -3,9 +3,24 @@
 #include "UIManager.hpp"
 #include "MenuManager.hpp"
 #include <iostream>
+#include <unistd.h>
+#include <libgen.h>
+#include <mach-o/dyld.h>
+
+void setWorkingDirectoryToExecutable()
+{
+    char path[1024];
+    uint32_t size = sizeof(path);
+
+    if (_NSGetExecutablePath(path, &size) == 0) {
+        chdir(dirname(path));
+    }
+}
+
 Game* game = nullptr;
 
 int main(int argc, char* argv[]) {
+    setWorkingDirectoryToExecutable();
     // Initialisation
     game = new Game();
     // Loading Enemies
