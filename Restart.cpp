@@ -12,6 +12,13 @@ void Game::restart(){
         enemies[i]->setPosition(enemyLoadLocations[i]);
         enemies[i]->reset();
     }
+    for (auto& [pos, d] : doors){
+        d.openAmount = 0.0f;
+        d.vacant = true;
+        d.opening = false;
+        d.closing = false;
+        d.openTimer = 0.0f;
+    }
     std::sort(indexOfSpawnedAmmos.begin(), 
     indexOfSpawnedAmmos.end(), std::greater<int>());
     for (int idx : indexOfSpawnedAmmos) {
