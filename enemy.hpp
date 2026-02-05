@@ -36,9 +36,9 @@ class Enemy {
     // combat stats
     int health = 100;
     int baseDamage = 10, damageSpread = 5;
-    int attackChanceDivisor = 3;
-    int accuracyDivisor = 6;   // 1 in 6 chance 
-    int painChanceDivisor = 4; // 1 in 4 chance
+    int attackChanceDivisor = 2;
+    int accuracyDivisor = 3;   // 1 in 6 chance 
+    int painChanceDivisor = 5; // 1 in 4 chance
     float walk_angle_error = 10.0f * M_PI / 180.0f; // ±10 degrees
     float attackRange = 7.0f;
     int doorOpenChanceDivisor = 3; // 1 in 3 chance
