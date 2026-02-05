@@ -105,7 +105,7 @@ public:
         int borderThickness
     );
 
-    static void addAvatarFrame(const char*, SDL_Renderer&);
+    static void addAvatarFrame(const char*, SDL_Renderer&, int);
     static void renderAvatar(SDL_Renderer& rend, 
     const std::pair<int,int>& screenSize);
 private:
@@ -137,8 +137,8 @@ private:
     static float notifUpdateTimer;
     static constexpr float notifDuration = 1.0f; 
 
-    static UIAnimation AvatarAnimation;
-    static int avatarFrame;
-    static float avatarTimer;
+    static std::vector<UIAnimation> AvatarAnimation;
+    static int avatarFrame, curr_avatar_state;
+    static float avatarTimer, avatarFrameDuration;
     static std::pair<int, int> AvatarDimensions;
 };

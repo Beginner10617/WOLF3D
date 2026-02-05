@@ -19,9 +19,11 @@ std::map<WeaponType, UIAnimation> UIManager::weaponAnimations = {
     { WeaponType::Pistol, UIAnimation{} },
     { WeaponType::Rifle,  UIAnimation{} }
 };
-UIAnimation UIManager::AvatarAnimation{};
+std::vector<UIAnimation> UIManager::AvatarAnimation{};
 float UIManager::avatarTimer = 0.0f;
+float UIManager::avatarFrameDuration = 1.0f;
 int UIManager::avatarFrame = 0;
+int UIManager::curr_avatar_state = 0;
 std::pair<int, int> UIManager::AvatarDimensions = {0, 0};
 BitmapFont UIManager::font;
 SDL_Rect UIManager::panel = { 0, 0, 0, 0 };
@@ -31,11 +33,11 @@ int UIManager::panelBorderThickness = 1;
 SDL_Color UIManager::panelFillColor = {0, 0, 165 ,255};
 SDL_Color UIManager::panelBorderColor = {255, 255, 255 ,255};
 std::map<HUDSections, int> UIManager::panelSectionWidths = {
-    {HUDSections::WEAPON, 192 + 20}, 
+    {HUDSections::WEAPON, 192 + 60}, 
     {HUDSections::AMMO, 88}, 
-    {HUDSections::AVATAR, 200}, 
+    {HUDSections::AVATAR, 77}, 
     {HUDSections::HEALTH, 132}, 
-    {HUDSections::KEYS, 148 + 20} 
+    {HUDSections::KEYS, 148 + 60} 
 };
 
 std::map<WeaponType, SDLTexturePtr> UIManager::panelWeaponImage={};
@@ -67,7 +69,7 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
 
     enum Section { NONE, KNIFE, PISTOL, RIFLE, FONT, WEAPONPANEL, KEYS, AVATAR};
     Section currentSection = NONE;
-
+    int AvatarAnimState = 0;
     std::string line;
     while (std::getline(file, line)) {
 
@@ -134,7 +136,11 @@ void UIManager::loadTextures(const char* filePath, SDL_Renderer& rend){
             , line.c_str(), rend);
         }
         else if (currentSection == AVATAR){
-            addAvatarFrame(line.c_str(), rend);
+	    if(line[0]=='[' && line[2]==']' && line[1] <= '9' && line[1] >= '0'){
+	    	AvatarAnimState++;
+		continue;
+	    }
+            addAvatarFrame(line.c_str(), rend, AvatarAnimState);
         }
         else {
             std::cerr << "Warning: Path found outside any valid section: " << line << "\n";
@@ -154,7 +160,7 @@ void UIManager::addTexture(WeaponType weapon, const char* filePath, SDL_Renderer
     weaponAnimations[weapon].frames.emplace_back(raw, SDL_DestroyTexture);
 }
 
-void UIManager::addAvatarFrame(const char* filePath, SDL_Renderer& renderer){
+void UIManager::addAvatarFrame(const char* filePath, SDL_Renderer& renderer, int state){
     SDL_Texture* raw = IMG_LoadTexture(&renderer, filePath);
     if (!raw) {
         std::cerr << "Failed to Avatar texture: "
@@ -170,7 +176,9 @@ void UIManager::addAvatarFrame(const char* filePath, SDL_Renderer& renderer){
         }
         AvatarDimensions = std::make_pair(width, height);
     }
-    AvatarAnimation.frames.emplace_back(raw, SDL_DestroyTexture);
+    if(AvatarAnimation.size()<state)
+	    AvatarAnimation.push_back(UIAnimation());
+    AvatarAnimation[state-1].frames.emplace_back(raw, SDL_DestroyTexture);
 }
 
 void UIManager::update(float deltaTime)
@@ -183,13 +191,11 @@ void UIManager::update(float deltaTime)
     }
 
     avatarTimer += deltaTime;
-    while (avatarTimer >= frameDuration)
+    curr_avatar_state= (100-health) * AvatarAnimation.size() / 101 ;
+    while (avatarTimer >= avatarFrameDuration)
     {
-        avatarTimer -= frameDuration;
-        avatarFrame++;
-        if(avatarFrame >= AvatarAnimation.frames.size()){
-            avatarFrame = 0;
-        }
+        avatarTimer -= avatarFrameDuration;
+        avatarFrame = rand() % AvatarAnimation[curr_avatar_state].frames.size();
     }
 
     if (!animating) return;
@@ -268,7 +274,6 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
 
     // Rendering Datas on Panel
     renderPanelWeaponImage(rend, screenSize);
-
     // AMMO AND HEALTH TEXT
     SDL_Color clr = {153, 159, 253, 255};
     int ax = 0, hx=0, i = 0, j = (int) HUDSections::HEALTH;y=0;
@@ -326,7 +331,7 @@ void UIManager::renderHUD(SDL_Renderer& rend, const std::pair<int,int>& screenSi
 
 void UIManager::renderAvatar(SDL_Renderer& rend, 
     const std::pair<int,int>& screenSize){
-    if(AvatarAnimation.frames.size()==0)
+    if(AvatarAnimation[curr_avatar_state].frames.size()==0)
         return;
     int y = screenSize.second - panelHeight, h = panelHeight;
     int x = 0, w = panelSectionWidths[HUDSections::AVATAR];
@@ -349,7 +354,7 @@ void UIManager::renderAvatar(SDL_Renderer& rend,
     SDL_Rect dstRect {x, y, drawW, drawH};
     SDL_RenderCopy(
         &rend,
-        AvatarAnimation.frames[avatarFrame].get(), 
+        AvatarAnimation[curr_avatar_state].frames[avatarFrame].get(), 
         nullptr,
         &dstRect
     );
