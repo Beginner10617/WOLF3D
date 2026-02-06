@@ -7,9 +7,9 @@ This project is a recreation of classic early‑90s FPS mechanics: grid‑based 
 
 ---
 ## Demo
-
+<div align="center">
 <img src="DEMO.gif" alt="Alt text" width="400" height="250">
-
+</div>
 ---
 
 ## Features
