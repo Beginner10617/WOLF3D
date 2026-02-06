@@ -7,6 +7,8 @@
 #include <vector>
 #include <utility>
 #include <map>
+#include <memory>
+#include <algorithm>
 
 // Utilities
 using SDLWindowPtr =
@@ -27,7 +29,7 @@ struct Sprite {
     bool active = true;
 };
 
-auto distSq = [](const std::pair<float, float>& a,
+inline auto distSq = [](const std::pair<float, float>& a,
                  const std::pair<float, float>& b)
 {
     float dx = a.first  - b.first;

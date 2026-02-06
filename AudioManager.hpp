@@ -2,6 +2,7 @@
 #include "SDL_mixer.h"
 #include <string>
 #include <map>
+#include <memory>
 #ifndef AUDIO_MANAGER_HPP
 #define AUDIO_MANAGER_HPP
 using MixChunkPtr =

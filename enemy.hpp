@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <cmath>
 #define PI 3.1415926535f
 // HERE ANGLES ARE TAKEN POSITIVE ANTI-CLOCKWISE FROM TOP CONTRARY TO THE PLAYER
 enum EnemyState {
