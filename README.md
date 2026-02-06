@@ -21,7 +21,6 @@ This project is a recreation of classic early‑90s FPS mechanics: grid‑based 
 * Wall collision detection
 * Distance‑based wall shading
 * SDL2 window, rendering, and input handling
-* Minimal dependencies
 
 ---
 
