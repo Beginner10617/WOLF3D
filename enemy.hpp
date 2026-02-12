@@ -22,7 +22,7 @@ void load_enemy_textures(
 class Enemy {
     EnemyState state; 
     bool walking = false;
-    float walk_segment_length = 1.5f;
+    float walk_segment_length = 1.0f;
     int spriteID;
 
     // perception & memory
@@ -40,7 +40,7 @@ class Enemy {
     int attackChanceDivisor = 2;
     int accuracyDivisor = 3;   // 1 in 6 chance 
     int painChanceDivisor = 5; // 1 in 4 chance
-    float walk_angle_error = 10.0f * M_PI / 180.0f; // ±10 degrees
+    float walk_angle_error = 60.0f * M_PI / 180.0f; // ±60 degrees
     float attackRange = 7.0f;
     int doorOpenChanceDivisor = 3; // 1 in 3 chance
 
@@ -52,7 +52,7 @@ class Enemy {
     bool wantToOpenThisFrame = false;
 
     std::pair<float, float> position, destinationOfWalk;
-    float angle, sze=0.5f, moveSpeed = 1.0f, DurationPerSprite = 0.25f, fracTime = 0.0f;
+    float angle, sze=0.5f, moveSpeed = 2.0f, DurationPerSprite = 0.25f, fracTime = 0.0f;
     int currentFrame = 0, frameIndex = 0, directionNum;
     std::map<EnemyState, std::vector<int>> Animations;
 public:
